@@ -1,10 +1,6 @@
 # music
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
+My music explorations in Clojure and Overtone.
 
 ## License
 
