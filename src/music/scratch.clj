@@ -235,7 +235,7 @@
 
   (stop)
 
-  (definst tone [freq 400] (* (env-adsr 0.2 0 1 0.5) (sin-osc freq)))
+  (definst tone [freq 400 amp 0.8] (* amp (env-adsr 0.2 0 1 0.5) (sin-osc freq)))
 
   (looper 100 (partial wop))
 
@@ -256,16 +256,20 @@
   (tone)
   (sp/sampled-piano)
 
+  (def attack (atom 1.0))
+
+  (definst steel-drum [note 60 amp 0.8 attack 0.5 decay 0.5]
+    (let [freq (midicps note)]
+        (* amp
+          (env-gen (perc attack decay) 1 1 0 1 :action FREE)
+          (+ (sin-osc (/ freq 2))
+            (rlpf (saw freq) (* 1.1 freq) 0.4)))))
+
+  (stop)
+
+  (steel-drum 80)
 
   (midi-connected-devices)
-
-  (midi-capture-next-controller-key)
-
-  (midi-capture-next-control-input)
-
-  (midi-agent-for-control 23)
-
-  (midi-device-keys)
 
   (event-debug-on)
 
@@ -277,7 +281,8 @@
                     freq (midi->hz note)
                     vel  (+ 0.25 (* 0.75 (:velocity-f e)))]
                 (prn "+" note vel)
-                (sp/sampled-piano note vel)))
+                #_(sp/sampled-piano note vel)
+                (steel-drum note vel @attack (- 1 @attack))))
             ::keyboard-handler)
 
   (on-event [:midi :note-off]
@@ -292,7 +297,9 @@
               (let [vel (:velocity-f e)
                     data1 (:note e)
                     data2 (:data2 e)]
-                (prn data1 data2 vel)))
+                (prn data1 data2 vel)
+                (if (= 106 data1) (stop))
+                (if (= 1 data1) (reset! attack vel))))
             ::control-handler)
 
   (on-event [:midi :pitch-bend]
@@ -302,9 +309,15 @@
                     data2 (:data2 e)
                     ev (dissoc e :device :msg :dev-key)
                     bend (if (> 64 data2) data2 (+ -127 data2))]
-                (prn bend)
+                (prn "pitch" bend)
                 ))
             ::bend-handler)
+
+
+  (remove-event-handler ::bend-handler )
+  (remove-event-handler ::control-handler)
+  (remove-event-handler ::key-off-handler)
+  (remove-event-handler ::keyboard-handler)
 
   nil)
 
