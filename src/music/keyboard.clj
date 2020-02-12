@@ -219,6 +219,32 @@
         env  (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
     (* amp env snd)))
 
+; Create an instrument with a sustain parameter.
+(definst sustain-flute
+  [note 60 amp 1 gate 1 sustain 0 pitch-bend 0 release 0.5 attack 0.001]
+  (let [freq (midicps (+ note pitch-bend))
+        snd  (sin-osc freq)
+        snd2  (sin-osc (* 2 freq))
+        env  (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
+    (* amp env (+ snd snd2))))
+
+(definst sustain-saw
+  [note 60 amp 1 gate 1 sustain 0 pitch-bend 0 release 0.5 attack 0.001]
+  (let [freq (midicps (+ note pitch-bend))
+        snd  (saw freq)
+        env  (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
+    (* amp env snd)))
+
+(definst sustain-harmonic
+  [note 60 amp 1 gate 1 sustain 0 pitch-bend 0 release 0.5 attack 0.001]
+  (let [freq (midicps (+ note pitch-bend))
+        snd  (sin-osc freq)
+        amps [0 0 0 0 0 0 0 0 0 0]
+        harmonics (map #(+ 2 %) (range))
+        div (apply + (conj amps 1))
+        env  (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
+    (* amp env snd)))
+
 (comment
   (midi-connected-devices)
 
@@ -230,9 +256,14 @@
   (def player (inst-player synth/pad))
   (def player (inst-player synth/supersaw))
   (def player (inst-player sustain-ding))
+  (def player (inst-player sustain-flute))
+  (def player (inst-player sustain-saw))
+  (def player (inst-player sustain-harmonic))
 
 ; Stop the instrument player.
   (stop-inst-player player)
+
+  (sustain-harmonic)
 
   (stop)
 
