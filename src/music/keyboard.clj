@@ -106,15 +106,23 @@
                       :finished {}})
         sustain* (atom 0)
         pitch-bend* (atom 0)
-        bend-range* (atom 0)
+        bend-range* (atom 1.0)
         bottom-amp* (atom 0)
         release* (atom 0.5)
         attack* (atom 0.001)
+        o1v* (atom 0.0)
+        o2v* (atom 0.0)
+        o3v* (atom 0.0)
 
         on-id (keyword (gensym "on-handler"))
         off-id (keyword (gensym "off-handler"))
         cc-id (keyword (gensym "cc-handler"))
-        pitch-bend-id (keyword (gensym "pitch-bend-handler"))]
+        pitch-bend-id (keyword (gensym "pitch-bend-handler"))
+
+        knob1 (fn [v-f] (prn "knob1" v-f) (reset! o1v* v-f))
+        knob2 (fn [v-f] (prn "knob2" v-f) (reset! o2v* v-f))
+        knob3 (fn [v-f] (prn "knob3" v-f) (reset! o3v* v-f))
+        ]
 
     ; Handle note-on MIDI events.
     (on-event [:midi :note-on]
@@ -137,14 +145,17 @@
                                :attack @attack*
                                :release @release*
                                :sustain @sustain*
-                               :pitch-bend @pitch-bend*))))
+                               :pitch-bend @pitch-bend*
+                               :o1 @o1v*
+                               :o2 @o2v*
+                               :o3 @o3v*))))
                   (prn "note" note amp @attack* @release*)))
               on-id)
 
     ; Handle note-off MIDI events.
     (on-event [:midi :note-off]
-              (fn [{:keys [note velocity]}]
-                (let [velocity (float (/ velocity 127))]
+              (fn [{:keys [note velocity-f]}]
+                (let [velocity velocity-f]
                   (when-let [sound (get-in @notes* [:active note])]
                     ; Set the note's gate to 0, and move it
                     ; from "active" to "finished".
@@ -174,11 +185,13 @@
                       (reset! bottom-amp* data2-f)
                       (prn "bottom-amp" data2-f))
                   10 (prn "data" data2-f)
-                  21 (let [attack (* 1.0 data2-f)]
+                  21 (knob1 data2-f)
+                  #_(let [attack (* 1.0 data2-f)]
                        (reset! attack* attack)
                        (prn "knob1/attack" data2-f))
-                  22 (prn "knob2" data2-f)
-                  23 (let [release (* 10 data2-f)]
+                  22 (knob2 data2-f)
+                  23 (knob3 data2-f)
+                  #_(let [release (* 10 data2-f)]
                        (reset! release* release)
                        (prn "knob3/release" release))
                   1 (let [r (* 10 data2-f)]
@@ -224,9 +237,10 @@
   [note 60 amp 1 gate 1 sustain 0 pitch-bend 0 release 0.5 attack 0.001]
   (let [freq (midicps (+ note pitch-bend))
         snd  (sin-osc freq)
-        snd2  (sin-osc (* 2 freq))
+        snd2 (* 0 (sin-osc (* 2 freq)))
+        snd3 (* 1/4 (sin-osc (* 3 freq)))
         env  (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
-    (* amp env (+ snd snd2))))
+    (* amp env (/ (+ snd snd2 snd3) 5/4))))
 
 (definst sustain-saw
   [note 60 amp 1 gate 1 sustain 0 pitch-bend 0 release 0.5 attack 0.001]
@@ -236,25 +250,28 @@
     (* amp env snd)))
 
 (definst sustain-harmonic
-  [note 60 amp 1 gate 1 sustain 0 pitch-bend 0 release 0.5 attack 0.001]
+  [note 60
+   amp 1
+   gate 1
+   sustain 0
+   pitch-bend 0
+   release 0.5
+   attack 0.001
+   o1 0.0
+   o2 0.0
+   o3 0.0]
   (let [freq (midicps (+ note pitch-bend))
         snd  (sin-osc freq)
-        amps [0 0 0 0 0 0 0 0 0 0]
-        harmonics (map #(+ 2 %) (range))
-        div (apply + (conj amps 1))
-        env  (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
-    (* amp env snd)))
+        snd1 (* o1 (sin-osc (* 2 freq)))
+        snd2 (* o2 (sin-osc (* 3 freq)))
+        snd3 (* o3 (sin-osc (* 4 freq)))
+        env (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
+    (* amp env (+ snd snd1 snd2 snd3) (/ 1 (+ 1 o1 o2 o3)))))
 
 (comment
   (midi-connected-devices)
 
-
 ; Start an instrument player.
-  (def player (inst-player synth/simple-flute))
-  (def player (inst-player synth/simple-flute))
-  (def player (inst-player synth/tb303))
-  (def player (inst-player synth/pad))
-  (def player (inst-player synth/supersaw))
   (def player (inst-player sustain-ding))
   (def player (inst-player sustain-flute))
   (def player (inst-player sustain-saw))
@@ -263,8 +280,11 @@
 ; Stop the instrument player.
   (stop-inst-player player)
 
-  (sustain-harmonic)
+  (event [:midi :note-on] :note 80 :velocity-f 1.0)
 
-  (stop)
+  (event [:midi :note-off] :note 80 :velocity-f 0)
+
 
   nil)
+
+
