@@ -1,3 +1,5 @@
-* keyboard: remember all active midi listeners for easy clearing
-* keyboard: additive synth: overtone series mixing
-* metronome
+* TODO keyboard: remember all active midi listeners for easy clearing
+* TODO keyboard: additive synth: overtone series mixing
+* TODO metronome
+* TODO quantize
+* TODO data knob to jog 3 volumes
