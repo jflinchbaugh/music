@@ -3,73 +3,85 @@
             [music.core :refer :all]
             [overtone.inst.drum :as d]
             [overtone.inst.sampled-piano :as sp]
-            [overtone.inst.piano :as p]
-            [overtone.inst.sampled-flute :as f]))
-
-(def ring-hat (freesound 12912))
-(def snare (freesound 26903))
-(def click (freesound 406))
-(def wop (freesound 85291))
-(def subby (freesound 25649))
-
-(def pats {subby [0 0 0 0 0 0 0 0]
-           snare [0 0 0 0 0 0 0 0]
-           wop   [0 0 0 0 0 0 0 0]})
-
-(def live-pats (atom pats))
-
-(defn flatten1
-  "Takes a map and returns a seq of all the key val pairs:
-      (flatten1 {:a 1 :b 2 :c 3}) ;=> (:b 2 :c 3 :a 1)"
-  [m]
-  (reduce (fn [r [arg val]] (cons arg (cons val r))) [] m))
-
-(defn live-sequencer
-  ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
-  ([curr-t sep-t live-patterns beat]
-   (doseq [[sound pattern] @live-patterns
-           :let [v (nth pattern (mod beat (count pattern)))
-                 v (cond
-                     (= 1 v)
-                     []
-
-                     (map? v)
-                     (flatten1 v)
-
-                     :else
-                     nil)]
-           :when v]
-     (at curr-t (apply sound v)))
-   (let [new-t (+ curr-t sep-t)]
-     (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (inc beat)]))))
-
-(defn normalise-beat-info
-  [beat]
-  (cond
-    (= 1 beat)         {}
-    (map? beat)        beat
-    (sequential? beat) beat
-    :else              {}))
-
-(defn schedule-pattern
-  [curr-t pat-dur sound pattern]
-  {:pre [(sequential? pattern)]}
-  (let [beat-sep-t (/ pat-dur (count pattern))]
-    (doseq [[beat-info idx] (partition 2 (interleave pattern (range)))]
-      (let [beat-t    (+ curr-t (* idx beat-sep-t))
-            beat-info (normalise-beat-info beat-info)]
-        (if (sequential? beat-info)
-          (schedule-pattern beat-t beat-sep-t sound beat-info)
-          (at beat-t (apply sound (flatten1 beat-info))))))))
-
-(defn live-sequencer
-  [curr-t pat-dur live-patterns]
-  (doseq [[sound pattern] @live-patterns]
-    (schedule-pattern curr-t pat-dur sound pattern))
-  (let [new-t (+ curr-t pat-dur)]
-    (apply-by new-t #'live-sequencer [new-t pat-dur live-patterns])))
+            [overtone.inst.sampled-flute :as f]
+            [overtone.inst.synth :as synth]
+            [overtone.synth.sts :as sts]))
 
 (comment
+
+
+
+  (def ring-hat (freesound 12912))
+  (def snare (freesound 26903))
+  (def click (freesound 406))
+  (def wop (freesound 85291))
+  (def subby (freesound 25649))
+
+  (click)
+
+  (snare)
+
+  (wop)
+
+  (subby)
+
+  (def pats {subby [0 0 0 0 0 0 0 0]
+            snare [0 0 0 0 0 0 0 0]
+            wop   [0 0 0 0 0 0 0 0]})
+
+  (def live-pats (atom pats))
+
+  (defn flatten1
+    "Takes a map and returns a seq of all the key val pairs:
+        (flatten1 {:a 1 :b 2 :c 3}) ;=> (:b 2 :c 3 :a 1)"
+    [m]
+    (reduce (fn [r [arg val]] (cons arg (cons val r))) [] m))
+
+  (defn live-sequencer
+    ([curr-t sep-t live-patterns] (live-sequencer curr-t sep-t live-patterns 0))
+    ([curr-t sep-t live-patterns beat]
+    (doseq [[sound pattern] @live-patterns
+            :let [v (nth pattern (mod beat (count pattern)))
+                  v (cond
+                      (= 1 v)
+                      []
+
+                      (map? v)
+                      (flatten1 v)
+
+                      :else
+                      nil)]
+            :when v]
+      (at curr-t (apply sound v)))
+    (let [new-t (+ curr-t sep-t)]
+      (apply-by new-t #'live-sequencer [new-t sep-t live-patterns (inc beat)]))))
+
+  (defn normalise-beat-info
+    [beat]
+    (cond
+      (= 1 beat)         {}
+      (map? beat)        beat
+      (sequential? beat) beat
+      :else              {}))
+
+  (defn schedule-pattern
+    [curr-t pat-dur sound pattern]
+    {:pre [(sequential? pattern)]}
+    (let [beat-sep-t (/ pat-dur (count pattern))]
+      (doseq [[beat-info idx] (partition 2 (interleave pattern (range)))]
+        (let [beat-t    (+ curr-t (* idx beat-sep-t))
+              beat-info (normalise-beat-info beat-info)]
+          (if (sequential? beat-info)
+            (schedule-pattern beat-t beat-sep-t sound beat-info)
+            (at beat-t (apply sound (flatten1 beat-info))))))))
+
+  (defn live-sequencer
+    [curr-t pat-dur live-patterns]
+    (doseq [[sound pattern] @live-patterns]
+      (schedule-pattern curr-t pat-dur sound pattern))
+    (let [new-t (+ curr-t pat-dur)]
+      (apply-by new-t #'live-sequencer [new-t pat-dur live-patterns])))
+
 
   (live-sequencer (+ 200 (now)) 200 live-pats)
 
@@ -254,11 +266,12 @@
   (cycle [1 2 3])
 
   (tone)
+
   (sp/sampled-piano)
 
   (def attack (atom 1.0))
 
-  (definst steel-drum [note 60 amp 0.8 attack 0.5 decay 0.5]
+  (definst steel-drum [note 60 amp 0.8 attack 0.001 decay 0.3]
     (let [freq (midicps note)]
         (* amp
           (env-gen (perc attack decay) 1 1 0 1 :action FREE)
@@ -267,57 +280,46 @@
 
   (stop)
 
-  (steel-drum 80)
+  (steel-drum 80 1)
 
-  (midi-connected-devices)
+  (sp/sampled-piano 80 0.6)
 
-  (event-debug-on)
-
-  (event-debug-off)
-
-  (on-event [:midi :note-on]
-            (fn [e]
-              (let [note (:note e)
-                    freq (midi->hz note)
-                    vel  (+ 0.25 (* 0.75 (:velocity-f e)))]
-                (prn "+" note vel)
-                #_(sp/sampled-piano note vel)
-                (steel-drum note vel @attack (- 1 @attack))))
-            ::keyboard-handler)
-
-  (on-event [:midi :note-off]
-            (fn [e]
-              (let [vel (:velocity-f e)
-                    note (:note e)]
-                (prn "-" note)))
-            ::key-off-handler)
-
-  (on-event [:midi :control-change]
-            (fn [e]
-              (let [vel (:velocity-f e)
-                    data1 (:note e)
-                    data2 (:data2 e)]
-                (prn data1 data2 vel)
-                (if (= 106 data1) (stop))
-                (if (= 1 data1) (reset! attack vel))))
-            ::control-handler)
-
-  (on-event [:midi :pitch-bend]
-            (fn [e]
-              (let [vel (:velocity-f e)
-                    data1 (:data1 e)
-                    data2 (:data2 e)
-                    ev (dissoc e :device :msg :dev-key)
-                    bend (if (> 64 data2) data2 (+ -127 data2))]
-                (prn "pitch" bend)
-                ))
-            ::bend-handler)
+  (d/tom (midi->hz 62) 0.6 0.6 1)
 
 
-  (remove-event-handler ::bend-handler )
-  (remove-event-handler ::control-handler)
-  (remove-event-handler ::key-off-handler)
-  (remove-event-handler ::keyboard-handler)
+  (scale :a3 :major)
+
+  (def scale-degrees [:vi :vii :i+ :_ :vii :_ :i+ :vii :vi :_ :vii :_])
+
+  (def pitches (degrees->pitches scale-degrees :dorian :C4))
+
+
+  ; setup a sound for our metronome to use
+  (def kick (sample (freesound-path 2086)))
+
+                                        ; setup a tempo for our metronome to use
+  (def one-twenty-bpm (metronome 120))
+
+                                        ; this function will play our sound at whatever tempo we've set our metronome to 
+  (defn looper [nome sound]    
+    (let [beat (nome)]
+      (at (nome beat) (sound))
+      (apply-by (nome (inc beat)) looper nome sound [])))
+
+                                        ; turn on the metronome
+  (looper one-twenty-bpm kick)
+  (stop)
+
+  (definst kick [freq 120 dur 0.3 width 0.5]
+    (let [freq-env (* freq (env-gen (perc 0 (* 0.99 dur))))
+          env (env-gen (perc 0.01 dur) 1 1 0 1 FREE)
+          sqr (* (env-gen (perc 0 0.01)) (pulse (* 2 freq) width))
+          src (sin-osc freq-env)
+          drum (+ sqr (* env src))]
+      (compander drum drum 0.2 1 0.1 0.01 0.01)))
+
+
+  (kick 100)
 
   nil)
 
