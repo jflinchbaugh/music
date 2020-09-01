@@ -4,7 +4,8 @@
   overtone.examples.workshops.resonate2013.ex01_phrasestudy
   (:use
    [overtone.live]
-   [overtone.inst.piano]))
+   [overtone.inst.piano]
+   [overtone.inst.sampled-piano]))
 
 ;; All examples are wrapped in (comment) to stop them from
 ;; executing all at once when the file is loaded...
@@ -13,28 +14,35 @@
 ;; Selection of a whole form (in Eclipse) can be done easily by clicking in
 ;; front of the opening bracket and then pressing Command+Shift+right...
 (comment
-  (piano 60)
-  (piano (note :c4)) ; 60
-  (piano (note :d4)) ; 62
-  (piano (note :g4)) ; 67
-  (piano (note :c5)) ; 72
+  (sampled-piano)
+
+  (sampled-piano 60)
+
+  (sampled-piano (note :c4)) ; 60
+  (sampled-piano (note :d4)) ; 62
+  (sampled-piano (note :g4)) ; 67
+  (sampled-piano (note :c5)) ; 72
 
   ;; play a note 2 secs in the future
   ;; the `now` fn returns the current timestamp
-  (at (+ (now) 2000) (piano 72))
+  (at (+ (now) 2000) (sampled-piano 72))
+
+  (map-indexed #(* %1 %2) [10 20 30 40])
 
   ;; play progression C4 D4 G4 C5
   ;; notes will be played every 200 milliseconds
   ;; the fn passed to `map-indexed` takes two arguments: index & note
-  (dorun (map-indexed (fn [i n] (at (+ (now) (* i 200)) (piano n))) [60 62 67 72]))
+  (dorun (map-indexed
+           (fn [i n] (at (+ (now) (* i 200)) (sampled-piano n)))
+           [60 62 67 72]))
   ;; same, but using fn reader macro w/ anonymous arguments (% = 1st argument, %2 = 2nd arg, etc.)
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano %2)) [60 62 67 72]))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano %2)) [60 62 67 72]))
   ;; play progression relative to C4 (MIDI note offset = 60)
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano (+ 60 %2))) [0 2 7 12 24 19 14 12]))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano (+ 60 %2))) [0 2 7 12 24 19 14 12]))
   ;; play one octave higher (60 + 12 = 72)
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano (+ 72 %2))) [0 2 7 12]))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano (+ 72 %2))) [0 2 7 12]))
   ;; play minor variation (7 -> 6)
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano (+ 72 %2))) [0 2 6 12]))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano (+ 72 %2))) [0 2 6 12]))
   )
 
 ;; the examples in this namespace are all about thinking of music as sequences
@@ -49,11 +57,11 @@
 
 (comment
   ;; play a phrase of concatenated patterns: 2x A, 2x B
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano (+ 72 %2))) (concat a a b b)))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano (+ 72 %2))) (concat a a b b)))
 
   ;; repeat the constructed phrase twice
   ;; (flatten) removes any nesting from a given sequence
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano (+ 72 %2))) (flatten (repeat 2 (concat a a b b)))))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano (+ 72 %2))) (flatten (repeat 2 (concat a a b b)))))
 
   ;; the `->>` is a so called threading-macro, which weaves the result of each form
   ;; as last argument into the next form and so allows us to think about the code as
@@ -72,7 +80,7 @@
   ;;                    0 2 7 12 0 2 7 12 0 2 6 12 0 2 6 12) (no more nesting)
   ;;
   ;; This final flat collection is then used as input for the `map-indexed` fn for playback
-  (dorun (map-indexed #(at (+ (now) (* % 200)) (piano (+ 72 %2))) (->> [a a b b] (repeat 2) (flatten))))
+  (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano (+ 72 %2))) (->> [a a b b] (repeat 2) (flatten))))
   )
 
 ;; define counter running at 120 bpm
@@ -81,7 +89,15 @@
 
 (comment
   ;; play phrase using metronome
-  (dorun (map-indexed #(at (metro (+ (metro) (/ % 2))) (piano (+ 72 %2))) (->> [a a b b] (repeat 2) (flatten))))
+  (dorun (map-indexed #(at (metro (+ (metro) (/ % 2))) (sampled-piano (+ 72 %2))) (->> [a a b b] (repeat 2) (flatten))))
+
+  (metro (+ (metro) (/ 600 2)))
+
+  (map (comp #(/ % 1E14) metro) (take 10 (range)))
+
+  (map #(metro) (take 10 (range)))
+
+  (metronome)
   )
 
 ;; now let's start separating concerns: note playback vs. phrase playback
@@ -114,9 +130,10 @@
          (dorun))))
 
 (comment
-  ;; play the same combined pattern as earlier, but also allows us to
+
+
   ;; specify note durations (1/16th), root note (:c4) and number of repetitions (2)
-  (play-phrases-1 metro piano 1/16 :c4 2 a a b b))
+  (play-phrases-1 metro sampled-piano 1/16 :c4 2 a a b b))
 
 ;; continue separating concerns: pattern repetition vs. pattern playback...
 
@@ -169,9 +186,9 @@
     (dorun (map-indexed #(play % dur inst %2) phrases))))
 
 (comment
-  (play-phrases-2 metro piano 1/16 pattern)
-  (play-phrases-2 metro piano 1/16 (repeat-phrases 2 0 pattern))
-  (play-phrases-2 metro piano 1/16 (repeat-phrases 2 0 pattern (reverse pattern))))
+  (play-phrases-2 metro sampled-piano 1/16 pattern)
+  (play-phrases-2 metro sampled-piano 1/16 (repeat-phrases 2 0 pattern))
+  (play-phrases-2 metro sampled-piano 1/16 (repeat-phrases 2 0 pattern (reverse pattern))))
 
 ;; Let's create some more pattern variations
 (def mirror-pattern
@@ -185,7 +202,7 @@
 (comment
   ;; Here we also make use of the relative transposing feature of `specs->phrases` creating
   ;; a new long phrase which goes down to G3 (-5) and D3 (-10) towards the end
-  (play-phrases-2 metro piano 1/16 (specs->phrases [1 0 long-pattern] [1 -5 pattern] [1 -10 (reverse pattern)])))
+  (play-phrases-2 metro sampled-piano 1/16 (specs->phrases [1 0 long-pattern] [1 -5 pattern] [1 -10 (reverse pattern)])))
 
 ;; And to show even more possibilities, an even longer progression
 ;; Here we also use `take` & `drop` to only use parts of existing phrases
@@ -199,7 +216,7 @@
        (apply repeat-phrases 2 0)))
 
 (comment
-  (play-phrases-2 metro piano 1/16 progression))
+  (play-phrases-2 metro sampled-piano 1/16 progression))
 
 ;; Until now all notes have been played with the same duration, but it's now time
 ;; to start thinking about imposing a certain rhythm onto our phrase(s)
@@ -253,8 +270,8 @@
 
 (comment
   ;; Let's testdrive the rhythms...
-  (play-rhythmic-phrase-1 metro piano rhythm 1/2 progression)
-  (play-rhythmic-phrase-1 metro piano alt-rhythm 1 progression)
+  (play-rhythmic-phrase-1 metro sampled-piano rhythm 1/2 progression)
+  (play-rhythmic-phrase-1 metro sampled-piano alt-rhythm 1 progression)
   )
 
 ;; Maybe it's also a good time to introduce a couple of custom synths
