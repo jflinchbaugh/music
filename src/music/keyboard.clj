@@ -119,9 +119,9 @@
         cc-id (keyword (gensym "cc-handler"))
         pitch-bend-id (keyword (gensym "pitch-bend-handler"))
 
-        knob1 (fn [v-f] (prn "knob1" v-f) (reset! o1v* v-f))
-        knob2 (fn [v-f] (prn "knob2" v-f) (reset! o2v* v-f))
-        knob3 (fn [v-f] (prn "knob3" v-f) (reset! o3v* v-f))
+        knob1 (fn [v-f] (prn "knob1" v-f) (reset! o1v* v-f) (ctl inst :o1 v-f))
+        knob2 (fn [v-f] (prn "knob2" v-f) (reset! o2v* v-f) (ctl inst :o2 v-f))
+        knob3 (fn [v-f] (prn "knob3" v-f) (reset! o3v* v-f) (ctl inst :o3 v-f))
         ]
 
     ; Handle note-on MIDI events.
@@ -262,10 +262,10 @@
    o3 0.0]
   (let [freq (midicps (+ note pitch-bend))
         snd  (sin-osc freq)
-        snd1 (* o1 (sin-osc (* 2 freq)))
-        snd2 (* o2 (sin-osc (* 3 freq)))
-        snd3 (* o3 (sin-osc (* 4 freq)))
-        env (env-gen (adsr attack 0.1 0.6 release) (or gate sustain) :action FREE)]
+        snd1 (* o1 (sin-osc (* 3 freq)))
+        snd2 (* o2 (sin-osc (* 5 freq)))
+        snd3 (* o3 (sin-osc (* 7 freq)))
+        env (env-gen  (adsr attack 0.1 1.0 release) (or gate sustain) :action FREE)]
     (* amp env (+ snd snd1 snd2 snd3) (/ 1 (+ 1 o1 o2 o3)))))
 
 (comment
@@ -276,15 +276,36 @@
   (def player (inst-player sustain-flute))
   (def player (inst-player sustain-saw))
   (def player (inst-player sustain-harmonic))
+  (def player (inst-player d/tom))
 
 ; Stop the instrument player.
   (stop-inst-player player)
 
-  (event [:midi :note-on] :note 80 :velocity-f 1.0)
+  (event [:midi :note-on] :note 60 :velocity-f 1.0)
 
-  (event [:midi :note-off] :note 80 :velocity-f 0)
+  (event [:midi :note-off] :note 60 :velocity-f 0)
 
+  (demo (lf-saw 60 0 0.5 0.5))
+  (demo (saw 60))
+
+  (doseq [n [84 84 86 84 82 81 84]] (demo (saw n)))
+  (stop)
+
+  (demo 0.1 (sustain-flute 84))
+  (demo 0.1 (saw 84))
+  (demo 0.4 (saw 86))
+  (demo 0.1 (saw 84))
+  (demo 0.4 (saw 82))
+  (demo 0.1 (saw 81))
+  (demo 0.2 (saw 84))
+
+  (demo 10 (saw (mouse-x 50 1000)))
+
+  (show-graphviz-synth (saw))
+
+  (volume 0.8)
 
   nil)
+
 
 
