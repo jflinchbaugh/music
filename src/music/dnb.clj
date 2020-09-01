@@ -2,6 +2,7 @@
   (:require [overtone.live :refer :all]
             [overtone.inst.drum :as d]))
 
+;; stranjah minimal dnb
 ;; https://www.youtube.com/watch?v=GdA63c8lvNw
 
 (def metro (metronome 174))
