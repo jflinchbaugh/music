@@ -20,14 +20,11 @@
 (def snare (freesound 26903))
 (def click (freesound 406))
 (def wop (freesound 85291))
-(def subby (freesound 25649))
+(def subby #((freesound 25649) 1 0 1 0 0.5))
 
 (comment
   (reset! pat [])
 
-  (snare)
-
-  (freesound)
   (reset! pat (concat
                 ;; base drums
                 [
@@ -48,12 +45,6 @@
 
   (beat metro (metro) 4 pat)
 
-  (metro-bpm metro 160)
-
   (stop)
-
-  (map (fn [i] [i d/closed-hat2]) (range 0 4 0.5))
-
-  (demo (+ (env-gen (env-adsr 0.01 1 1 1)) (lpf (+ (sin-osc-fb [50 50] 2)) 100)))
 
   nil)
