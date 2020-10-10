@@ -11,9 +11,9 @@
   (* amp (env-gen (lin attack (- sustain attack release) release) :action FREE) (pan2 (sin-osc freq))))
 
 (comment
-  (let [start-time (now)
-        beat-time 300
-        chord-name :major
+  (let [chord-name :major
+        bpm 174
+        metro (metronome bpm)
         progression-1 (take 3 (shuffle (scale :c4 chord-name)))
         progression-2 (take 3 (shuffle (scale :e4 chord-name)))
         stream (map #(-> [%1 %2])
@@ -37,7 +37,8 @@
                  (range))
         ]
     (prn (map first stream))
-    (doseq [[n t] stream]
-      (at (+ start-time (* beat-time t)) (whistle (midi->hz n) 0.5 0.01 0.3 0.01))))
+    (doseq [[n b] stream]
+      (at (metro b) (whistle (midi->hz n) 1 0.01 0.3 0.01))))
+
 
   )
