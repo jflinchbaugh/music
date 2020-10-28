@@ -25,7 +25,6 @@
         instrument saw-buzz
         bpm 140
         beat-length 1/4
-        swing 0.2
         metro (metronome bpm)
         note-duration (* 1/1000 beat-length (- (metro 1) (metro 0)))
         progression-1 (take 4 (shuffle (scale :c4 chord-name)))
