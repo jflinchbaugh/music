@@ -1,7 +1,5 @@
 (ns music.keyboard
-  (:require [overtone.live :refer :all]
-            [overtone.inst.drum :as d]
-            [overtone.inst.piano :as p]
+  (:require [overtone.core :refer :all]
             [overtone.inst.synth :as synth]
             [overtone.synth.sts :refer [prophet]]))
 
@@ -81,13 +79,13 @@
 ; See https://www.midikits.net/midi_analyser/pitch_bend.htm for reference.
 (defn midi-pitch-bend-to-float [data1 data2]
   (let [; midi two bytes to a number between 0 and 16383,
-                                        ; 0 means lowest bend, 8192 means no bend, 16383 means highest bend
+        ; 0 means lowest bend, 8192 means no bend, 16383 means highest bend
         unsigned (bit-or
                   (-> data2 (bit-flip 6) (bit-shift-left 7))
                   data1)
-                                        ; to a number between -8192 and 8191
+          ; to a number between -8192 and 8191
         signed (- unsigned 8192)
-                                        ; correcting for having less values (8191) for pitch increase than decrease
+          ; correcting for having less values (8191) for pitch increase than decrease
         divisor (if (< signed 0) 8192 8191)
         ret (float (/ signed divisor))]
     ret))
@@ -269,6 +267,10 @@
     (* amp env (+ snd snd1 snd2 snd3) (/ 1 (+ 1 o1 o2 o3)))))
 
 (comment
+
+  (connect-external-server)
+
+
   (midi-connected-devices)
 
 ; Start an instrument player.
@@ -276,7 +278,6 @@
   (def player (inst-player sustain-flute))
   (def player (inst-player sustain-saw))
   (def player (inst-player sustain-harmonic))
-  (def player (inst-player d/tom))
 
 ; Stop the instrument player.
   (stop-inst-player player)
