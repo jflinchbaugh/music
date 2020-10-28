@@ -1,9 +1,12 @@
 (ns music.core
-  (:require [overtone.live :refer :all]
-            [overtone.inst.drum :as d]
-            [overtone.inst.sampled-piano :as sp]
-            [overtone.inst.piano :as p]
-            [overtone.inst.sampled-flute :as f]))
+  (:require [overtone.core :refer :all]
+            [clojure.java.shell :refer [sh]]))
+
+(do
+  (println "Starting an external supercollider")
+  (future (sh "supercollider.sh"))
+  (println "Connecting to supercollider")
+  (connect-external-server))
 
 (defn looper
   ([delay f]
