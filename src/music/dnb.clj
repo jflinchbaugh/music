@@ -1,5 +1,5 @@
 (ns music.dnb
-  (:require [overtone.live :refer :all]
+  (:require [overtone.core :refer :all]
             [overtone.inst.drum :as d]))
 
 ;; stranjah minimal dnb
@@ -26,13 +26,12 @@
   (reset! pat [])
 
   (reset! pat (concat
-                ;; base drums
+                ;; drums
                 [
                  [0 d/kick] ;; (midi->hz (note :c2)) 1]
                  [1 d/snare]
                  [2.5 d/kick] ;; (midi->hz (note :c2)) 10]
                  [3 d/snare]
-
                  ]
 
                 ;;hats

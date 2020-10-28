@@ -1,5 +1,5 @@
 (ns music.auto-dubstep
-  (:require [overtone.live :refer :all]))
+  (:require [overtone.core :refer :all]))
 
 ;; Dan Stowells' Dubstep Synth:
 ;; SClang version:
