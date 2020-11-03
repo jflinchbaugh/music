@@ -1,7 +1,5 @@
 (ns music.keyboard
-  (:require [overtone.core :refer :all]
-            [overtone.inst.synth :as synth]
-            [overtone.synth.sts :refer [prophet]]))
+  (:require [overtone.core :refer :all]))
 
 (definst ding
   [note 60 velocity 100]
@@ -268,10 +266,9 @@
 
 (comment
 
-  (connect-external-server)
-
-
   (midi-connected-devices)
+
+  (connect-external-server)
 
 ; Start an instrument player.
   (def player (inst-player sustain-ding))
