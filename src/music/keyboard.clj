@@ -1,28 +1,6 @@
 (ns music.keyboard
-  (:require [overtone.core :refer :all]))
-
-(definst ding
-  [note 60 velocity 100]
-  (let [freq (midicps note)
-        snd  (sin-osc freq)
-        env  (env-gen (perc 0.1 0.8) :action FREE)]
-    (* velocity env snd)))
-
-(defn midi-player [event]
-  (ding (:note event) (/ (:velocity event) 127.0)))
-
-; Calling midi-in without any arguments will bring up a swing dialog to choose
-; from available midi devices.  Note that Java does not seem to detect midi devices
-; after JVM startup (at least on OSX), so you USB midi device will need to be connected
-; before starting Overtone.
-
-;(def keyboard (midi-in))
-
-; The low level midi handler mechanism from midi-clj uses midi-handle-events,
-; which takes a device ; and a midi player function that will receive midi
-; event maps.
-
-;(midi-handle-events keyboard #'midi-player)
+  (:require [overtone.core :refer :all]
+            [overtone.inst.drum :as d]))
 
 ; overtone.studio.midi now includes the beginnings of a higher level midi interface
 ; that helps improve on this.  By default Overtone will detect and listen to all
@@ -34,6 +12,7 @@
 ;(on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
 ;                             (println "Note: " note ", Velocity: " velocity))
 ;          ::note-printer)
+
 
 ;(remove-event-handler ::note-printer)
 
@@ -117,10 +96,11 @@
 
         knob1 (fn [v-f] (prn "knob1" v-f) (reset! o1v* v-f) (ctl inst :o1 v-f))
         knob2 (fn [v-f] (prn "knob2" v-f) (reset! o2v* v-f) (ctl inst :o2 v-f))
-        knob3 (fn [v-f] (prn "knob3" v-f) (reset! o3v* v-f) (ctl inst :o3 v-f))
-        ]
+        knob3 (fn [v-f] (prn "knob3" v-f) (reset! o3v* v-f) (ctl inst :o3 v-f))]
 
     ; Handle note-on MIDI events.
+
+
     (on-event [:midi :note-on]
               (fn [{:keys [note velocity-f]}]
                 (let [amp-range (- 1.0 @bottom-amp*)
@@ -136,16 +116,16 @@
                       ; Create a new note and set it to "active".
                       (swap! notes* assoc-in [:active note]
                              (inst
-                               :note note
-                               :amp amp
-                               :attack @attack*
-                               :release @release*
-                               :sustain @sustain*
-                               :pitch-bend @pitch-bend*
-                               :o1 @o1v*
-                               :o2 @o2v*
-                               :o3 @o3v*))))
-                  (prn "note" note amp @attack* @release*)))
+                              :note note
+                              :amp amp
+                              :attack @attack*
+                              :release @release*
+                              :sustain @sustain*
+                              :pitch-bend @pitch-bend*
+                              :o1 @o1v*
+                              :o2 @o2v*
+                              :o3 @o3v*))))
+                  (prn "note on" note amp @attack* @release*)))
               on-id)
 
     ; Handle note-off MIDI events.
@@ -159,7 +139,7 @@
                       (node-control sound [:gate 0 :after-touch velocity]))
                     (swap! notes* update-in [:active] dissoc note)
                     (swap! notes* assoc-in [:finished note] sound))
-                  (prn "off" note velocity)))
+                  (prn "note off" note velocity)))
               off-id)
 
     ; Handle control-change MIDI events.
@@ -169,27 +149,27 @@
                   ; Note 64 = MIDI sustain pedal control-change
                   64 (do (prn "pedal" data2))
                   106 (let [sustain? (>= data2 64)
-                           sustain (if sustain? 1 0)]
+                            sustain (if sustain? 1 0)]
                        ; Update the sustain atom, and update the
                        ; sustain of all active notes.
-                       (reset! sustain* sustain)
-                       (if sustain?
-                         (doseq [sound (:active @notes*)]
-                           (ctl sound :sustain sustain))
-                         (ctl inst :sustain sustain)))
+                        (reset! sustain* sustain)
+                        (if sustain?
+                          (doseq [sound (:active @notes*)]
+                            (ctl sound :sustain sustain))
+                          (ctl inst :sustain sustain)))
                   7 (do
                       (reset! bottom-amp* data2-f)
                       (prn "bottom-amp" data2-f))
                   10 (prn "data" data2-f)
                   21 (knob1 data2-f)
                   #_(let [attack (* 1.0 data2-f)]
-                       (reset! attack* attack)
-                       (prn "knob1/attack" data2-f))
+                      (reset! attack* attack)
+                      (prn "knob1/attack" data2-f))
                   22 (knob2 data2-f)
                   23 (knob3 data2-f)
                   #_(let [release (* 10 data2-f)]
-                       (reset! release* release)
-                       (prn "knob3/release" release))
+                      (reset! release* release)
+                      (prn "knob3/release" release))
                   1 (let [r (* 10 data2-f)]
                       (reset! bend-range* r)
                       (prn "bend range" r))
@@ -264,46 +244,198 @@
         env (env-gen  (adsr attack 0.1 1.0 release) (or gate sustain) :action FREE)]
     (* amp env (+ snd snd1 snd2 snd3) (/ 1 (+ 1 o1 o2 o3)))))
 
+(defn log-player []
+  "Handle incoming midi events by playing notes on inst, updating
+  the :gate and :sustain parameters of inst based on MIDI
+  note-on/note-off and sustain pedal (control-change 64) events
+  respectively."
+  (let [notes* (atom {:active {} :finished {}})
+        on-id (keyword (gensym "on-handler"))
+        off-id (keyword (gensym "off-handler"))
+        cc-id (keyword (gensym "cc-handler"))
+        pitch-bend-id (keyword (gensym "pitch-bend-handler"))
+        data (fn [v] (prn "data" v))
+        knob1 (fn [v-f] (prn "knob-1" v-f))
+        knob2 (fn [v-f] (prn "knob-2" v-f))
+        knob3 (fn [v-f] (prn "knob-3" v-f))
+        modulation (fn [v-f] (prn "modulation" v-f))]
+
+    ; Handle note-on MIDI events.
+
+
+    (on-event [:midi :note-on]
+              (fn [{:keys [note velocity-f]}]
+                ; Ignore the event if this note is already active.
+                (when (not (contains? (:active @notes*) note))
+                  (let [sound (get-in @notes* [:finished note])]
+                    ; If there is a "finished" version of this note,
+                    ; set gate and sustain to zero to prevent
+                    ; overlapping with the new note.
+                    (when (and sound (node-active? sound))
+                      (node-control sound [:gate 0 :sustain 0]))
+                    ; Create a new note and set it to "active".
+                    (swap! notes* assoc-in [:active note] sound)))
+                (prn "note on" note velocity-f))
+              on-id)
+
+    ; Handle note-off MIDI events.
+    (on-event [:midi :note-off]
+              (fn [{:keys [note velocity-f]}]
+                  (when-let [sound (get-in @notes* [:active note])]
+                    ; Set the note's gate to 0, and move it
+                    ; from "active" to "finished".
+                    (with-inactive-node-modification-error :silent
+                      (node-control sound [:gate 0 :after-touch velocity-f]))
+                    (swap! notes* update-in [:active] dissoc note)
+                    (swap! notes* assoc-in [:finished note] sound))
+                  (prn "note off" note velocity-f))
+              off-id)
+
+    ; Handle control-change MIDI events.
+    (on-event [:midi :control-change]
+              (fn [{:keys [note data2 data2-f]}]
+                (case note
+                  ; Note 64 = MIDI sustain pedal control-change
+                  64 (do (prn "pedal" data2))
+                  7 (prn "slide" data2-f)
+                  10 (data data2)
+                  21 (knob1 data2-f)
+                  22 (knob2 data2-f)
+                  23 (knob3 data2-f)
+                  1 (modulation data2-f)
+                  105 (prn "play")
+                  106 (prn "stop" data2)
+                  107 (prn "rec")
+                  (prn "other-control" note data2)))
+              cc-id)
+
+    ; Handle pitch-bend MIDI events
+    (on-event [:midi :pitch-bend]
+              (fn [{:keys [data1 data2]}]
+                (let [pitch-f (midi-pitch-bend-to-float data1 data2)]
+                  (prn "pitch bend" pitch-f)))
+              pitch-bend-id)
+
+    ; Return the ids of the event handlers so they can be stopped
+    ; later.
+    [on-id off-id cc-id pitch-bend-id]))
+
+(defn drum-player []
+  (let [notes* (atom {:active {} :finished {}})
+        on-id (keyword (gensym "on-handler"))
+        off-id (keyword (gensym "off-handler"))
+        cc-id (keyword (gensym "cc-handler"))
+        pitch-bend-id (keyword (gensym "pitch-bend-handler"))
+        data (fn [v] (prn "data" v))
+        knob1 (fn [v-f] (prn "knob-1" v-f))
+        knob2 (fn [v-f] (prn "knob-2" v-f))
+        knob3 (fn [v-f] (prn "knob-3" v-f))
+        modulation (fn [v-f] (prn "modulation" v-f))
+        play-note (fn [n v-f]
+                    (case n
+                      60 (d/kick)
+                      61 (d/snare)
+                      62 (d/dub-kick)
+                      63 (d/closed-hat2)
+                      nil
+                      ))]
+
+    (on-event [:midi :note-on]
+              (fn [{:keys [note velocity-f]}]
+                ; Ignore the event if this note is already active.
+                (when (not (contains? (:active @notes*) note))
+                  (let [sound (get-in @notes* [:finished note])]
+                    ; If there is a "finished" version of this note,
+                    ; set gate and sustain to zero to prevent
+                    ; overlapping with the new note.
+                    (when (and sound (node-active? sound))
+                      (node-control sound [:gate 0 :sustain 0]))
+                    ; Create a new note and set it to "active".
+                    (swap! notes* assoc-in [:active note] sound)))
+                (prn "note" note velocity-f)
+                (play-note note velocity-f))
+              on-id)
+
+    ; Handle note-off MIDI events.
+    (on-event [:midi :note-off]
+              (fn [{:keys [note velocity-f]}]
+                  (when-let [sound (get-in @notes* [:active note])]
+                    ; Set the note's gate to 0, and move it
+                    ; from "active" to "finished".
+                    (with-inactive-node-modification-error :silent
+                      (node-control sound [:gate 0 :after-touch velocity-f]))
+                    (swap! notes* update-in [:active] dissoc note)
+                    (swap! notes* assoc-in [:finished note] sound))
+                  (prn "off" note velocity-f))
+              off-id)
+
+    ; Handle control-change MIDI events.
+    (on-event [:midi :control-change]
+              (fn [{:keys [note data2 data2-f]}]
+                (case note
+                  ; Note 64 = MIDI sustain pedal control-change
+                  64 (do (prn "pedal" data2))
+                  7 (prn "slide" data2-f)
+                  10 (data data2)
+                  21 (knob1 data2-f)
+                  22 (knob2 data2-f)
+                  23 (knob3 data2-f)
+                  1 (modulation data2-f)
+                  105 (prn "play")
+                  106 (prn "stop" data2)
+                  107 (prn "rec")
+                  (prn "other-control" note data2)))
+              cc-id)
+
+    ; Handle pitch-bend MIDI events
+    (on-event [:midi :pitch-bend]
+              (fn [{:keys [data1 data2]}]
+                (let [pitch-f (midi-pitch-bend-to-float data1 data2)]
+                  (prn "pitch bend" pitch-f)))
+              pitch-bend-id)
+
+    ; Return the ids of the event handlers so they can be stopped
+    ; later.
+    [on-id off-id cc-id pitch-bend-id]))
+
+(def active-players* (atom '()))
+
+(defn start-player [player]
+  (swap! active-players* conj (player)))
+
+(defn stop-active-players []
+  (doseq [p @active-players*]
+    (stop-inst-player p)
+    (prn p)
+    (swap! active-players* (fn [coll item] (remove #{item} coll)) p)))
+
 (comment
+  (start-player drum-player)
 
-  (midi-connected-devices)
+  (stop-active-players)
 
-  (connect-external-server)
+  (volume 1)
 
-; Start an instrument player.
-  (def player (inst-player sustain-ding))
-  (def player (inst-player sustain-flute))
-  (def player (inst-player sustain-saw))
-  (def player (inst-player sustain-harmonic))
+  (event [:midi :note-on] :note 100 :velocity-f 0.5)
+  (event [:midi :note-off] :note 100 :velocity-f 0)
 
-; Stop the instrument player.
-  (stop-inst-player player)
+  (d/dry-kick)
+  (d/closed-hat)
+  (d/closed-hat2)
+  (d/dub-kick)
+  (d/hat3)
+  (d/kick)
+  (d/snare)
 
-  (event [:midi :note-on] :note 60 :velocity-f 1.0)
+  (d/snare)
 
-  (event [:midi :note-off] :note 60 :velocity-f 0)
+  (d/soft-hat)
 
-  (demo (lf-saw 60 0 0.5 0.5))
-  (demo (saw 60))
+  (d/bing)
 
-  (doseq [n [84 84 86 84 82 81 84]] (demo (saw n)))
-  (stop)
+  (note :c4)
 
-  (demo 0.1 (sustain-flute 84))
-  (demo 0.1 (saw 84))
-  (demo 0.4 (saw 86))
-  (demo 0.1 (saw 84))
-  (demo 0.4 (saw 82))
-  (demo 0.1 (saw 81))
-  (demo 0.2 (saw 84))
-
-  (demo 10 (saw (mouse-x 50 1000)))
-
-  (show-graphviz-synth (saw))
-
-  (volume 0.8)
-
-  nil)
+  )
 
 
 
