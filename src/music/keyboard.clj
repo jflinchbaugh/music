@@ -249,9 +249,9 @@
 (defn- prn-event [e]
   (println "=================")
   (->
-    e
-    (dissoc :msg :velocity :velocity-f :note :device)
-    pprint))
+   e
+   (dissoc :msg :velocity :velocity-f :note :device)
+   pprint))
 
 (defn log-player []
   (let [prn #(prn-event %)
@@ -261,8 +261,7 @@
         pitch-id (keyword (gensym "pitch-handler"))
         pp-id (keyword (gensym "pp-handler"))
         cp-id (keyword (gensym "cp-handler"))
-        pc-id (keyword (gensym "pc-handler"))
-        ]
+        pc-id (keyword (gensym "pc-handler"))]
     (on-event [:midi :note-on] prn on-id)
     (on-event [:midi :note-off] prn off-id)
     (on-event [:midi :control-change] prn cc-id)
@@ -274,212 +273,110 @@
     ; Return the ids of the event handlers so they can be stopped
     ; later.
     [on-id off-id cc-id pitch-id pp-id cp-id pc-id]))
-(comment
-clap-808.wav
-clap-analog.wav
-clap-crushed.wav
-clap-fat.wav
-clap-slapper.wav
-clap-tape.wav
-cowbell-808.wav
-crash-808.wav
-crash-acoustic.wav
-crash-noise.wav
-crash-tape.wav
-hihat-808.wav
-hihat-acoustic01.wav
-hihat-acoustic02.wav
-hihat-analog.wav
-hihat-digital.wav
-hihat-dist01.wav
-hihat-dist02.wav
-hihat-electro.wav
-hihat-plain.wav
-hihat-reso.wav
-hihat-ring.wav
-kick-808.wav
-kick-acoustic01.wav
-kick-acoustic02.wav
-kick-big.wav
-kick-classic.wav
-kick-cultivator.wav
-kick-deep.wav
-kick-dry.wav
-kick-electro01.wav
-kick-electro02.wav
-kick-floppy.wav
-kick-gritty.wav
-kick-heavy.wav
-kick-newwave.wav
-kick-oldschool.wav
-kick-plain.wav
-kick-slapback.wav
-kick-softy.wav
-kick-stomp.wav
-kick-tape.wav
-kick-thump.wav
-kick-tight.wav
-kick-tron.wav
-kick-vinyl01.wav
-kick-vinyl02.wav
-kick-zapper.wav
-openhat-808.wav
-openhat-acoustic01.wav
-openhat-analog.wav
-openhat-slick.wav
-openhat-tight.wav
-perc-808.wav
-perc-chirpy.wav
-perc-hollow.wav
-perc-laser.wav
-perc-metal.wav
-perc-nasty.wav
-perc-short.wav
-perc-tambo.wav
-perc-tribal.wav
-perc-weirdo.wav
-ride-acoustic01.wav
-ride-acoustic02.wav
-shaker-analog.wav
-shaker-shuffle.wav
-shaker-suckup.wav
-snare-808.wav
-snare-acoustic01.wav
-snare-acoustic02.wav
-snare-analog.wav
-snare-big.wav
-snare-block.wav
-snare-brute.wav
-snare-dist01.wav
-snare-dist02.wav
-snare-dist03.wav
-snare-electro.wav
-snare-lofi01.wav
-snare-lofi02.wav
-snare-modular.wav
-snare-noise.wav
-snare-pinch.wav
-snare-punch.wav
-snare-smasher.wav
-snare-sumo.wav
-snare-tape.wav
-snare-vinyl01.wav
-snare-vinyl02.wav
-tom-808.wav
-tom-acoustic01.wav
-tom-acoustic02.wav
-tom-analog.wav
-tom-chiptune.wav
-tom-fm.wav
-tom-lofi.wav
-tom-rototom.wav
-tom-short.wav
 
-"clap-808"
-"clap-analog"
-"clap-crushed"
-"clap-fat"
-"clap-slapper"
-"clap-tape"
-"cowbell-808"
-"crash-808"
-"crash-acoustic"
-"crash-noise"
-"crash-tape"
-"hihat-808"
-"hihat-acoustic01"
-"hihat-acoustic02"
-"hihat-analog"
-"hihat-digital"
-"hihat-dist01"
-"hihat-dist02"
-"hihat-electro"
-"hihat-plain"
-"hihat-reso"
-"hihat-ring"
-"kick-808"
-"kick-acoustic01"
-"kick-acoustic02"
-"kick-big"
-"kick-classic"
-"kick-cultivator"
-"kick-deep"
-"kick-dry"
-"kick-electro01"
-"kick-electro02"
-"kick-floppy"
-"kick-gritty"
-"kick-heavy"
-"kick-newwave"
-"kick-oldschool"
-"kick-plain"
-"kick-slapback"
-"kick-softy"
-"kick-stomp"
-"kick-tape"
-"kick-thump"
-"kick-tight"
-"kick-tron"
-"kick-vinyl01"
-"kick-vinyl02"
-"kick-zapper"
-"openhat-808"
-"openhat-acoustic01"
-"openhat-analog"
-"openhat-slick"
-"openhat-tight"
-"perc-808"
-"perc-chirpy"
-"perc-hollow"
-"perc-laser"
-"perc-metal"
-"perc-nasty"
-"perc-short"
-"perc-tambo"
-"perc-tribal"
-"perc-weirdo"
-"ride-acoustic01"
-"ride-acoustic02"
-"shaker-analog"
-"shaker-shuffle"
-"shaker-suckup"
-"snare-808"
-"snare-acoustic01"
-"snare-acoustic02"
-"snare-analog"
-"snare-big"
-"snare-block"
-"snare-brute"
-"snare-dist01"
-"snare-dist02"
-"snare-dist03"
-"snare-electro"
-"snare-lofi01"
-"snare-lofi02"
-"snare-modular"
-"snare-noise"
-"snare-pinch"
-"snare-punch"
-"snare-smasher"
-"snare-sumo"
-"snare-tape"
-"snare-vinyl01"
-"snare-vinyl02"
-"tom-808"
-"tom-acoustic01"
-"tom-acoustic02"
-"tom-analog"
-"tom-chiptune"
-"tom-fm"
-"tom-lofi"
-"tom-rototom"
-"tom-short"
-)
+(def all-samples [
+  "clap-808"
+  "clap-analog"
+  "clap-crushed"
+  "clap-fat"
+  "clap-slapper"
+  "clap-tape"
+  "cowbell-808"
+  "crash-808"
+  "crash-acoustic"
+  "crash-noise"
+  "crash-tape"
+  "hihat-808"
+  "hihat-acoustic01"
+  "hihat-acoustic02"
+  "hihat-analog"
+  "hihat-digital"
+  "hihat-dist01"
+  "hihat-dist02"
+  "hihat-electro"
+  "hihat-plain"
+  "hihat-reso"
+  "hihat-ring"
+  "kick-808"
+  "kick-acoustic01"
+  "kick-acoustic02"
+  "kick-big"
+  "kick-classic"
+  "kick-cultivator"
+  "kick-deep"
+  "kick-dry"
+  "kick-electro01"
+  "kick-electro02"
+  "kick-floppy"
+  "kick-gritty"
+  "kick-heavy"
+  "kick-newwave"
+  "kick-oldschool"
+  "kick-plain"
+  "kick-slapback"
+  "kick-softy"
+  "kick-stomp"
+  "kick-tape"
+  "kick-thump"
+  "kick-tight"
+  "kick-tron"
+  "kick-vinyl01"
+  "kick-vinyl02"
+  "kick-zapper"
+  "openhat-808"
+  "openhat-acoustic01"
+  "openhat-analog"
+  "openhat-slick"
+  "openhat-tight"
+  "perc-808"
+  "perc-chirpy"
+  "perc-hollow"
+  "perc-laser"
+  "perc-metal"
+  "perc-nasty"
+  "perc-short"
+  "perc-tambo"
+  "perc-tribal"
+  "perc-weirdo"
+  "ride-acoustic01"
+  "ride-acoustic02"
+  "shaker-analog"
+  "shaker-shuffle"
+  "shaker-suckup"
+  "snare-808"
+  "snare-acoustic01"
+  "snare-acoustic02"
+  "snare-analog"
+  "snare-big"
+  "snare-block"
+  "snare-brute"
+  "snare-dist01"
+  "snare-dist02"
+  "snare-dist03"
+  "snare-electro"
+  "snare-lofi01"
+  "snare-lofi02"
+  "snare-modular"
+  "snare-noise"
+  "snare-pinch"
+  "snare-punch"
+  "snare-smasher"
+  "snare-sumo"
+  "snare-tape"
+  "snare-vinyl01"
+  "snare-vinyl02"
+  "tom-808"
+  "tom-acoustic01"
+  "tom-acoustic02"
+  "tom-analog"
+  "tom-chiptune"
+  "tom-fm"
+  "tom-lofi"
+  "tom-rototom"
+  "tom-short"])
 
 (def sampler-grid
-
-  [
-   ["clap-808"
+  [["clap-808"
     "clap-analog"
     "clap-crushed"
     "clap-fat"
@@ -551,25 +448,59 @@ tom-short.wav
     "perc-weirdo"
     "ride-acoustic01"]])
 
+(defn color-patterns [f-name]
+  (condp re-matches f-name
+    #"kick-.*" :red
+    #"tom-.*" :red
+    #"clap-.*" :blue
+    #"perc-.*" :green
+    #"cowbell-.*" :green
+    #"hihat-.*" :cyan
+    #"openhat-.*" :cyan
+    #"crash-.*" :cyan
+    #"ride-.*" :cyan
+    #"snare-.*" :purple
+    :white))
+
 (defn load-sample-grid [sample-grid]
-  (mapv
+  (doall
+   (mapv
     (fn [row]
-      (mapv
-        (fn [f-name] (sample (str "samples/99sounds/" f-name ".wav")))
-        row))
-    sample-grid)
-  )
+      (doall
+       (mapv
+        (fn [f-name]
+          (let [sample-name (str "samples/99sounds/" f-name ".wav")
+                sample (sample sample-name)
+                instrument (->>
+                            sample
+                            (play-buf 1)
+                            (out [0 1])
+                            (synth f-name))
+                color (color-patterns f-name)
+                _ (prn sample-name instrument)]
+            [sample color]))
+        row)))
+    sample-grid)))
 
+(defsynth my-sample-player
+  [sample 0 amp 1]
+  (let [snd (play-buf 1 sample :action FREE)]
+    (out [0 1] (* amp snd))))
 
-(defn drum-player []
+(defn drum-player [sample-name-grid]
   (let [notes* (atom {:active {} :finished {}})
         on-id (keyword (gensym "on-handler"))
         off-id (keyword (gensym "off-handler"))
         cc-id (keyword (gensym "cc-handler"))
-        control-change (fn [data-1 data-2] )
-        sample-grid (load-sample-grid sampler-grid)
-        play-note (fn [n] ((get-in sample-grid (note->coord n))))]
-
+        control-change (fn [data-1 data-2])
+        sample-name-grid-v (mapv vec sample-name-grid)
+        sample-grid (load-sample-grid sample-name-grid)
+        play-note (fn [n]
+                    (let [sample (get-in sample-grid (concat (note->coord n) [0]))]
+                      (when-not (nil? sample) (my-sample-player sample))))]
+    (doseq [r (range 8)
+            c (range 8)]
+      (light-on [r c] (get-in sample-grid [r c 1] :black)))
     (on-event [:midi :note-on]
               (fn [{:keys [note velocity-f]}]
                 ; Ignore the event if this note is already active.
@@ -582,21 +513,24 @@ tom-short.wav
                       (node-control sound [:gate 0 :sustain 0]))
                     ; Create a new note and set it to "active".
                     (swap! notes* assoc-in [:active note] sound)))
-                (prn (note->coord note) (get-in sampler-grid (note->coord note)))
+                (prn (note->coord note) (get-in sample-name-grid-v (note->coord note)))
+                (light-on (note->coord note) :black)
                 (play-note note))
               on-id)
 
     ; Handle note-off MIDI events.
     (on-event [:midi :note-off]
               (fn [{:keys [note velocity-f]}]
-                  (when-let [sound (get-in @notes* [:active note])]
+                (when-let [sound (get-in @notes* [:active note])]
                     ; Set the note's gate to 0, and move it
                     ; from "active" to "finished".
-                    (with-inactive-node-modification-error :silent
-                      (node-control sound [:gate 0 :after-touch velocity-f]))
-                    (swap! notes* update-in [:active] dissoc note)
-                    (swap! notes* assoc-in [:finished note] sound))
-                  (prn "off" note velocity-f))
+                  (with-inactive-node-modification-error :silent
+                    (node-control sound [:gate 0 :after-touch velocity-f]))
+                  (swap! notes* update-in [:active] dissoc note)
+                  (swap! notes* assoc-in [:finished note] sound))
+                (light-on
+                 (note->coord note)
+                 (get-in sample-grid (concat (note->coord note) [1]) :black)))
               off-id)
 
     ; Handle control-change MIDI events.
@@ -609,8 +543,8 @@ tom-short.wav
 
 (defonce active-players* (atom '()))
 
-(defn start-player [player]
-  (swap! active-players* conj (player)))
+(defn start-player [player & args]
+  (swap! active-players* conj (apply player args)))
 
 (defn stop-active-players []
   (doseq [p @active-players*]
@@ -640,33 +574,11 @@ tom-short.wav
 
   (m/midi-out)
 
-
-  (m/mi)
-  (d/dry-kick)
-  (d/closed-hat)
-  (d/closed-hat2)
-  (d/dub-kick)
-  (d/hat3)
-  (d/kick)
-  (d/snare)
-
-  (d/snare)
-
-  (d/soft-hat)
-
-  (d/bing)
-
-  (note :c4)
-
-  (midi-note-on )
-
-  (metronome 10)
-
-    (let [rcv (first (midi-connected-receivers))]
-      (doseq [k (range 128)]
-                (do
-                 (midi-note-off rcv k)
-                   (midi-note-on rcv k k))))
+  (let [rcv (first (midi-connected-receivers))]
+    (doseq [k (range 128)]
+      (do
+        (midi-note-off rcv k)
+        (midi-note-on rcv k k))))
 
   (doseq [k (range 128)]
     (midi-note-off (first (midi-connected-receivers)) k))
@@ -675,18 +587,20 @@ tom-short.wav
 
   (midi-note (first (midi-connected-receivers)) 67 1 1000 1)
 
-
   (start-player log-player)
 
   (start-player drum-player)
 
   (stop-active-players)
 
-  (def grid (load-sample-grid sampler-grid))
+  (load-sample-grid (take 1 sampler-grid))
 
-  ((get-in grid [0 1]))
+  (start-player
+    drum-player
+    (take 8 (partition 8 (filter #(re-matches #".*(808|acoustic|vinyl|tape|perc).*" %) all-samples))))
 
-  (nth grid)
+  (stop-active-players)
+
 
   .)
 
