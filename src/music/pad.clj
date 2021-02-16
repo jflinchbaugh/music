@@ -36,11 +36,20 @@
        (light-off pad)
        (midi-note rcv note vel dur)))))
 
-(comment
-  (let [cc (cycle (rest (keys colors)))]
+(defn light-grid
+  "Light up the whole grid with colors determined
+  by calling (color-fn row column)."
+  [color-fn]
     (doseq [r (range 8)
             c (range 8)]
-      (light-on [r c] (nth cc (+ r c)))))
+      (light-on [r c] (color-fn r c))))
+
+(defn random-lights [r c]
+  (let [cc (cycle (rest (keys colors)))]
+    (-> cc shuffle first)))
+
+(comment
+  (light-grid (fn [r c] (first (shuffle (rest (keys colors))))))
 
   (light-on [0 2] :white)
 
