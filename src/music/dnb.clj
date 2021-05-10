@@ -22,15 +22,17 @@
 (def wop (freesound 85291))
 (def subby #((freesound 25649) 1 0 1 0 0.5))
 
+(def kick (partial d/kick 50 0.5 1 0.25))
+
 (comment
   (reset! pat [])
 
   (reset! pat (concat
                 ;; drums
                 [
-                 [0 d/kick] ;; (midi->hz (note :c2)) 1]
+                 [0 kick] ;; (midi->hz (note :c2)) 1]
                  [1 d/snare]
-                 [2.5 d/kick] ;; (midi->hz (note :c2)) 10]
+                 [2.5 kick] ;; (midi->hz (note :c2)) 10]
                  [3 d/snare]
                  ]
 
@@ -38,7 +40,7 @@
                 (map (fn [i] [i d/closed-hat2]) (range 0 4 0.5))
 
                 ;; shuffle
-                [[1.125 d/closed-hat2]
+                #_[[1.125 d/closed-hat2]
                    [1.25 d/closed-hat2]
                    ]))
 
