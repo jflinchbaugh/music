@@ -45,8 +45,7 @@
     (light-on [r c] (color-fn r c))))
 
 (defn random-lights [r c]
-  (let [cc (cycle (rest (keys colors)))]
-    (-> cc shuffle first)))
+  (first (shuffle (rest (keys colors)))))
 
 (defonce active-players* (atom '()))
 
@@ -66,17 +65,27 @@
     (swap! active-players* (fn [coll item] (remove #{item} coll)) p)))
 
 (defn pad-handler []
-  (let [id (keyword (gensym "on-handler"))]
+  (let [id-on-handler (keyword (gensym "on-handler"))
+        id-off-handler (keyword (gensym "off-handler"))
+        id-ctl-handler (keyword (gensym "ctl-handler"))]
     (on-event [:midi :note-on]
-      (fn [{:keys [note velocity-f]}]
-        (prn (note->coord note)))
-      id)
-    [id]))
+      (fn [{:keys [note velocity velocity-f channel] :as e}]
+        (prn " on" channel note (note->coord note) velocity))
+      id-on-handler)
+    (on-event [:midi :note-off]
+      (fn [{:keys [note velocity velocity-f channel] :as e}]
+        (prn "off" channel note (note->coord note) velocity))
+      id-off-handler)
+    (on-event [:midi :control-change]
+      (fn [{:keys [note velocity velocity-f channel] :as e}]
+        (prn "ctl" channel note velocity))
+      id-ctl-handler)
+    [id-on-handler id-off-handler id-ctl-handler]))
 
 (comment
-  (light-grid (fn [r c] (first (shuffle (rest (keys colors))))))
-
   (light-grid (fn [r c] (nth (cycle (rest (keys colors))) (+ (* 2 c) (* 2 r)))))
+
+  (light-grid random-lights)
 
   (light-on [0 2] :white)
 
