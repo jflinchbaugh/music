@@ -1,5 +1,6 @@
 (ns music.keyboard
   (:require [overtone.core :refer :all]
+            [music.core :refer :all]
             [overtone.inst.drum :as d]
             [clojure.pprint :refer [pprint]]
             [music.pad :refer :all]))
@@ -196,11 +197,12 @@
     ; later.
     [on-id off-id cc-id pitch-bend-id]))
 
-(defn stop-inst-player [event-handler-ids]
-  "Given a list of event-handler-ids returned by inst-player, remove
+(comment 
+  (defn stop-inst-player [event-handler-ids]
+    "Given a list of event-handler-ids returned by inst-player, remove
   all event handlers."
-  (doseq [id event-handler-ids]
-    (remove-event-handler id)))
+    (doseq [id event-handler-ids]
+      (remove-event-handler id))))
 
 ; Create an instrument with a sustain parameter.
 (definst sustain-ding
@@ -541,23 +543,12 @@
     ; later.
     [on-id off-id cc-id]))
 
-(defonce active-players* (atom '()))
-
-(defn start-player [player & args]
-  (swap! active-players* conj (apply player args)))
-
-(defn stop-active-players []
-  (doseq [p @active-players*]
-    (stop-inst-player p)
-    (prn p)
-    (swap! active-players* (fn [coll item] (remove #{item} coll)) p)))
-
 (comment
-  (start-player drum-player)
+  (start-event-handler drum-player)
 
-  (start-player log-player)
+  (start-event-handler log-player)
 
-  (stop-active-players)
+  (stop-active-event-handlers)
 
   (stop)
 
@@ -574,12 +565,6 @@
 
   (m/midi-out)
 
-  (let [rcv (first (midi-connected-receivers))]
-    (doseq [k (range 128)]
-      (do
-        (midi-note-off rcv k)
-        (midi-note-on rcv k k))))
-
   (doseq [k (range 128)]
     (midi-note-off (first (midi-connected-receivers)) k))
 
@@ -587,19 +572,19 @@
 
   (midi-note (first (midi-connected-receivers)) 67 1 1000 1)
 
-  (start-player log-player)
+  (start-event-handler log-player)
 
-  (start-player drum-player)
+  (start-event-handler drum-player)
 
-  (stop-active-players)
+  (stop-active-event-handlers)
 
   (load-sample-grid (take 1 sampler-grid))
 
-  (start-player
+  (start-event-handler
     drum-player
     (take 8 (partition 8 (filter #(re-matches #".*(808|acoustic|vinyl|tape|perc).*" %) all-samples))))
 
-  (stop-active-players)
+  (stop-active-event-handlers)
 
 
   .)

@@ -1,5 +1,6 @@
 (ns music.pad
-  (:require [overtone.core :refer :all]))
+  (:require [overtone.core :refer :all]
+            [music.core :refer :all]))
 
 (def rcv (midi-find-connected-receiver "SmartPAD"))
 
@@ -47,23 +48,6 @@
 (defn random-lights [r c]
   (first (shuffle (rest (keys colors)))))
 
-(defonce active-players* (atom '()))
-
-(defn start-player [player & args]
-  (swap! active-players* conj (apply player args)))
-
-(defn stop-inst-player [event-handler-ids]
-  "Given a list of event-handler-ids returned by inst-player, remove
-  all event handlers."
-  (doseq [id event-handler-ids]
-    (remove-event-handler id)))
-
-(defn stop-active-players []
-  (doseq [p @active-players*]
-    (stop-inst-player p)
-    (prn p)
-    (swap! active-players* (fn [coll item] (remove #{item} coll)) p)))
-
 (defn pad-handler []
   (let [id-on-handler (keyword (gensym "on-handler"))
         id-off-handler (keyword (gensym "off-handler"))
@@ -93,8 +77,8 @@
 
   (apply coord->note (note->coord 10))
 
-  (start-player pad-handler)
+  (start-event-handler pad-handler)
 
-  (stop-active-players)
+  (stop-active-event-handlers)
 
   .)
