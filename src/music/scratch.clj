@@ -350,10 +350,12 @@
   ;; playing notes
 
   ;; We use a saw-wave that we defined in the oscillators tutorial
-  (definst saw-wave [freq 440 attack 0.01 sustain 0.7 release 0.5 vol 0.4]
-    (* (env-gen (env-lin attack sustain release) 1 1 0 1 FREE)
+  (definst saw-wave [freq 440 attack 0.01 sustain 0.5 release 0.5 vol 0.4]
+    (* (env-gen (env-lin attack sustain release vol) 1 1 0 1 FREE)
       (saw freq)
       vol))
+
+  (stop)
 
   ;; We can play notes using frequency in Hz
   (saw-wave 440)
@@ -391,7 +393,7 @@
 
   ;; this is one possible implementation of play-chord
   (defn play-chord [a-chord]
-    (doseq [note (take 1 a-chord)] (saw2 note)))
+    (doseq [note (take 4 a-chord)] (saw2 note)))
 
   ;; We can play many types of chords.
   ;; For the complete list, visit https://github.com/overtone/overtone/blob/master/src/overtone/music/pitch.clj and search for "def CHORD"
@@ -411,46 +413,42 @@
 
   ;; or beats:
   (defonce metro (metronome 120))
-  (metro)
-  (defn chord-progression-beat [m beat-num]
-    (at (m (+ 0 beat-num)) ((var play-chord) (chord :C4 :major)))
-    (at (m (+ 4 beat-num)) ((var play-chord) (chord :G3 :major)))
-    (at (m (+ 8 beat-num)) ((var play-chord) (chord :A3 :minor)))
-    (at (m (+ 14 beat-num)) ((var play-chord) (chord :F3 :major)))  
-  )
 
-  (chord-progression-beat metro (metro))
+  (metro-bpm metro 120)
+
 
   ;; We can use recursion to keep playing the chord progression
   (defn chord-progression-beat [m beat-num]
-    (at (m (+ 0 beat-num)) (#'play-chord (chord :C4 :major)))
-    (at (m (+ 1 beat-num)) (#'play-chord (chord :C4 :major)))
-    (at (m (+ 2 beat-num)) (#'play-chord (chord :C4 :major)))
-    (at (m (+ 3 beat-num)) (#'play-chord (chord :C4 :major)))
-    (at (m (+ 4 beat-num)) (#'play-chord (chord :G3 :major)))
-    (at (m (+ 6 beat-num)) (#'play-chord (chord :G3 :major)))
-    (at (m (+ 8 beat-num)) (#'play-chord (chord :A3 :minor)))
-    (at (m (+ 10 beat-num)) (#'play-chord (chord :A3 :minor)))
-    (at (m (+ 12 beat-num)) (#'play-chord (chord :F3 :major)))
-    (at (m (+ 13 beat-num)) (#'play-chord (chord :F3 :major)))
-    (at (m (+ 14 beat-num)) (#'play-chord (chord :F3 :major)))
-    (at (m (+ 15 beat-num)) (#'play-chord (chord :F3 :major)))
+    (let [progression [:i+ :i+ :i+ :i+
+                       :v :_ :v :_
+                       :vi :_ :vi :_
+                       :iv :iv :iv :v]
+          notes (degrees->pitches progression :dorian :c3)]
+      (doseq [[b n] (map list (range 16) notes)]
+        (prn b n)
+        (when n
+          (at (m (+ b beat-num)) (play-chord (chord n :major)))))
 
-    (at (m (+ 0 beat-num)) (d/kick))
-    #_(at (m (+ 2 beat-num)) (d/kick))
-    (at (m (+ 6 beat-num)) (d/kick))
-    (at (m (+ 10 beat-num)) (d/kick))
-    (at (m (+ 14 beat-num)) (d/kick))
-    #_(at (m (+ 14.5 beat-num)) (d/kick))
-    #_(at (m (+ 15 beat-num)) (d/kick))
-    #_(at (m (+ 15.5 beat-num)) (d/kick))
+      (doseq [b [0 2 6 10 14 14.5 15 15.5]]
+        (at (m (+ b beat-num)) (d/kick)))
 
-    #_(apply-by (m (+ 16 beat-num)) (var chord-progression-beat) m (+ 16 beat-num) [])
+      #_(apply-at (m (+ (count notes) beat-num)) (var chord-progression-beat) m (+ (count notes) beat-num) []))
   )
 
   (chord-progression-beat metro (metro))
 
+  (map note [:c3 :a3 :c4 :g3 :a3 :f3]);; => (60 55 57 53)
+
+  (map note [:c3 :d3 :e3 :f3 :g3 :a3 :b3]);; => (60 55 57 53)
+
+
+  (degrees->pitches [:i :ii :iii :iv :v :vi :vii] :major :c3);; => (48 50 52 53 55 57 59)
+
+  (note :c3)
+
   (stop)
+
+  (map (fn [b n] (-> [b n])) (range 16) [:i :ii :iii])
 
 
   nil)
