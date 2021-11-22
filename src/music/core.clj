@@ -2,11 +2,10 @@
   (:require [overtone.core :refer :all]
             [clojure.java.shell :refer [sh]]))
 
-(do
-  #_(println "Starting an external supercollider")
-  #_(future (sh "supercollider.sh"))
-  (println "Connecting to supercollider")
-  (connect-external-server))
+(defonce external-server
+  (do
+    (println "Connecting to supercollider")
+    (connect-external-server)))
 
 (defn looper
   ([delay f]
