@@ -3,13 +3,13 @@
 
 (def metro (metronome 140))
 
-(definst sine-blip [freq 400 attack 0.025 release 0.3]
+(definst sine-blip [freq 400 attack 0.025 release 1.0 amp 0.4]
   (let [main-level 0.5
         saw-level 0.1
         saw-release-ratio 0.3
         main-env (env-gen (perc attack release) :action FREE)
         saw-env (env-gen (perc attack (* saw-release-ratio release)) :action FREE)]
-    (* 0.4
+    (* amp
        (+
         (* main-env main-level (sin-osc freq))
         (* saw-env saw-level (sin-osc (* 2 freq)))))))
@@ -51,14 +51,19 @@
     (/ 1 notes-per-beat)
     (map midi->hz
       (phrase-generator
-        (partial random-scale-notes root scale-name 4 32)
+        (partial random-scale-notes root scale-name 4 8)
         (* 32 notes-per-beat)))
     snd))
 
 (comment
-  (do
-    (play metro (+ 0 (metro)) :c4 :major 4 sine-blip)
-    (play metro (+ 2 (metro)) :c2 :major 4 sine-blip)
+  (let [scale-name :minor]
+    (play metro (+ 0 (metro)) :c4 scale-name 1 #'sine-blip)
+    (play metro (+ 32.5 (metro)) :c4 scale-name 1 #'sine-blip)
+    (play metro (+ 64.25 (metro)) :c4 scale-name 1 #'sine-blip)
+    (play metro (+ 64.75 (metro)) :c4 scale-name 1 #'sine-blip)
+
+    (play metro (+ 32 (metro)) :c2 scale-name 1/4 #(sine-blip :freq % :release 2.0))
+    (play metro (+ 96 (metro)) :c3 scale-name 2 #'sine-blip)
     )
 
   (stop)
