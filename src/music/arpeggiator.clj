@@ -14,7 +14,7 @@
         env-1 (env-gen (perc attack release) :action FREE)
         env-2 (env-gen (perc attack (* release-ratio-2 release)) :action FREE)
         env-3 (env-gen (perc attack (* release-ratio-3 release)) :action FREE)
-        env-4 (env-gen (perc attack (* release-ratio-4 release)) :action FREE)
+        env-4 (env-gen (perc attack (* release-ratio-4 release)) :action FREE)]
     (* amp
        (+
         (* env-1 level-1 (square (* 1 freq)))
