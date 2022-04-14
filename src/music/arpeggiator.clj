@@ -1,9 +1,9 @@
 (ns music.arpeggiator
   (:require [overtone.core :refer :all]))
 
-(def metro (metronome 140))
+(def metro (metronome 120))
 
-(definst sine-add [freq 400 attack 0.02 release 1.0 amp 0.4]
+(definst sine-add [freq 400 attack 0.02 release 1.0 amp 0.6]
   (let [master-level 0.5
         level-1 1.0
         level-2 0.1
@@ -12,8 +12,8 @@
         level-5 0.15
         release-ratio-2 1.0
         release-ratio-3 1.0
-        release-ratio-4 1.0
-        release-ratio-5 0.5
+        release-ratio-4 0.5
+        release-ratio-5 0.2
         env-1 (env-gen (perc attack release) :action FREE)
         env-2 (env-gen (perc attack (* release-ratio-2 release)) :action FREE)
         env-3 (env-gen (perc attack (* release-ratio-3 release)) :action FREE)
@@ -24,7 +24,7 @@
        (+
         (* env-1 level-1 (sin-osc (* 1 freq)))
         (* env-2 level-2 (sin-osc (* 2 freq)))
-        (* env-2 level-3 (sin-osc (* 3 freq)))
+        (* env-3 level-3 (sin-osc (* 3 freq)))
         (* env-4 level-4 (square (* 4 freq)))
         (* env-5 level-5 (square (* 5 freq)))))))
 
@@ -86,7 +86,7 @@
 (comment
   (let [scale-name :major
         length 16
-        note-dur (/ 60 (metro-bpm metro) 0.5)]
+        note-dur (/ 60 (metro-bpm metro) 0.65)]
     (play metro (+ (bars 0) (metro))
           :c5 scale-name
           1 (bars (+ length 0))
@@ -121,6 +121,13 @@
     "generated music")
 
   (stop)
+
+  (recording-start "/tmp/arp-comp-3.wav" )
+
+  (recording?)
+
+  (recording-stop)
+
 
   (let [root :a3
         scale-name :major
