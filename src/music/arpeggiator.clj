@@ -39,6 +39,16 @@
                (take length))]
     notes))
 
+(defn random-chord-notes [root scale-name repeat-notes length]
+  (let [notes (->>
+                (scale root scale-name)
+                (repeat repeat-notes)
+                flatten
+                shuffle
+                cycle
+                (take length))]
+    notes))
+
 (defn cycle-notes [notes-fn notes-per-phrase]
   (let [notes (->>
                (notes-fn)
@@ -58,7 +68,7 @@
    (/ 1 notes-per-beat)
    (->>
     (phrase-generator
-     (partial random-scale-notes root scale-name 8 8)
+     (partial random-chord-notes root scale-name 8 8)
      (* 32 notes-per-beat))
     (map midi->hz)
     (take (* notes-per-beat length)))
