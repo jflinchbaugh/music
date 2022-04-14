@@ -39,9 +39,9 @@
                (take length))]
     notes))
 
-(defn random-chord-notes [root scale-name repeat-notes length]
+(defn random-chord-notes [root chord-name repeat-notes length]
   (let [notes (->>
-                (scale root scale-name)
+                (chord root chord-name)
                 (repeat repeat-notes)
                 flatten
                 shuffle
@@ -122,7 +122,7 @@
         length 256]
     (->>
      (phrase-generator
-      (partial random-scale-notes root scale-name 4 8)
+      (partial random-chord-notes root scale-name 4 8)
       (* 32 notes-per-beat))
      (take (* notes-per-beat length))))
 
