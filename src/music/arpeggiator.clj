@@ -5,22 +5,22 @@
 
 (definst sine-blip [freq 400 attack 0.025 release 1.0 amp 0.4]
   (let [level-1 0.5
-        level-2 0.1
-        level-3 0.05
-        level-4 0.05
+        level-2 0.05
+        level-3 0.0
+        level-4 0
         release-ratio-2 0.3
         release-ratio-3 1.0
-        release-ratio-4 1.0
+        release-ratio-4 0.3
         env-1 (env-gen (perc attack release) :action FREE)
         env-2 (env-gen (perc attack (* release-ratio-2 release)) :action FREE)
         env-3 (env-gen (perc attack (* release-ratio-3 release)) :action FREE)
-        env-4 (env-gen (perc attack (* release-ratio-4 release)) :action FREE)]
+        env-4 (env-gen (perc attack (* release-ratio-4 release)) :action FREE)
     (* amp
        (+
-        (* env-1 level-1 (sin-osc freq))
-        (* env-2 level-2 (sin-osc (* 2 freq)))
+        (* env-1 level-1 (square (* 1 freq)))
+        (* env-2 level-2 (saw (* 2 freq)))
         (* env-2 level-3 (sin-osc (* 3 freq)))
-        (* env-4 level-4 (sin-osc (* 4 freq)))))))
+        (* env-4 level-4 (square (* 4 freq)))))))
 
 (defn player [m num step r sound]
   (let [n (first r)]
@@ -77,42 +77,42 @@
 (defn bars [n]
   (* 32 n))
 
-(metro 1)
-
 (comment
-  (let [scale-name :major
-        length 8
-        note-dur (/ 60 (metro-bpm metro) 0.9)]
+  (let [scale-name :major7
+        length 16
+        note-dur (/ 60 (metro-bpm metro) 0.75)]
     (play metro (+ (bars 0) (metro))
-      :c4 scale-name
+      :c5 scale-name
       1 (bars (+ length 0))
       #(sine-blip :freq % :release note-dur))
 
     (play metro (+ (bars 1) (metro))
-      :c2 scale-name
+      :c3 scale-name
       1/4 (bars (- length 1))
-      #(sine-blip :freq % :release (* 4 note-dur) :amp 0.6))
+      #(sine-blip :freq % :release (* 4 note-dur)))
 
     (play metro (+ (bars 2) 0.5 (metro))
-      :c4 scale-name
+      :c5 scale-name
       1 (bars (- length 2 1))
       #(sine-blip :freq % :release note-dur))
 
     (play metro (+ (bars 4) (metro))
-      :c3 scale-name
+      :c4 scale-name
       2 (bars (- length 4 2))
       #(sine-blip :freq % :release note-dur))
 
-    (for [b (range 3 (- length 2) 2)]
-      (do
-        (play metro (+ (bars b) 0.25 (metro))
-          :c4 scale-name
-          1 (bars 1)
-          #(sine-blip :freq % :release note-dur))
-        (play metro (+ (bars b) 0.75 (metro))
-          :c4 scale-name
-          1 (bars 1)
-          #(sine-blip :freq % :release note-dur)))))
+    (doall
+      (for [b (range 3 (- length 2) 2)]
+        (do
+          (play metro (+ (bars b) 0.25 (metro))
+            :c5 scale-name
+            1 (bars 1)
+            #(sine-blip :freq % :release note-dur))
+          (play metro (+ (bars b) 0.75 (metro))
+            :c5 scale-name
+            1 (bars 1)
+            #(sine-blip :freq % :release note-dur)))))
+    "generated music")
 
   (stop)
 
