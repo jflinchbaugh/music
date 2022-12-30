@@ -1,5 +1,7 @@
 {:deps {org.clojure/clojure {:mvn/version "1.11.1"}
         overtone/overtone {:mvn/version "0.10.6"}
-        leipzig/leipzig {:mvn/version "0.10.0"}}
+        leipzig/leipzig {:mvn/version "0.10.0"}
+        badigeon/badigeon {:mvn/version "1.7"}
+        }
  :paths ["src" "test" "resources"]
  :aliases {}}
