@@ -3,30 +3,30 @@
 
 (def metro (metronome 120))
 
-(definst sine-add [freq 400 attack 0.02 release 1.0 amp 0.6]
+(definst sine-add [freq 400 attack 0.02 sustain 1.0 release 0.2 amp 0.6]
   (let [master-level 0.5
         level-1 1.0
-        level-2 0.1
-        level-3 0.00
-        level-4 0.05
+        level-2 0.00
+        level-3 0.15
+        level-4 0.00
         level-5 0.15
         release-ratio-2 1.0
         release-ratio-3 1.0
-        release-ratio-4 0.5
-        release-ratio-5 0.2
-        env-1 (env-gen (perc attack release) :action FREE)
-        env-2 (env-gen (perc attack (* release-ratio-2 release)) :action FREE)
-        env-3 (env-gen (perc attack (* release-ratio-3 release)) :action FREE)
-        env-4 (env-gen (perc attack (* release-ratio-4 release)) :action FREE)
-        env-5 (env-gen (perc attack (* release-ratio-5 release)) :action FREE)]
+        release-ratio-4 1.0
+        release-ratio-5 1.0
+        env-1 (env-gen (adsr-ng :attack attack :level 0.6 :decay attack :sustain sustain :release release) :action FREE)
+        env-2 (env-gen (adsr-ng :attack attack :level 0.6 :decay attack :sustain sustain :release release) :action FREE)
+        env-3 (env-gen (adsr-ng :attack attack :level 0.6 :decay attack :sustain sustain :release release) :action FREE)
+        env-4 (env-gen (adsr-ng :attack attack :level 0.6 :decay attack :sustain sustain :release release) :action FREE)
+        env-5 (env-gen (adsr-ng :attack attack :level 0.6 :decay attack :sustain sustain :release release) :action FREE)]
     (* amp
        master-level
        (+
         (* env-1 level-1 (sin-osc (* 1 freq)))
         (* env-2 level-2 (sin-osc (* 2 freq)))
         (* env-3 level-3 (sin-osc (* 3 freq)))
-        (* env-4 level-4 (square (* 4 freq)))
-        (* env-5 level-5 (square (* 5 freq)))))))
+        (* env-4 level-4 (sin-osc (* 4 freq)))
+        (* env-5 level-5 (sin-osc (* 5 freq)))))))
 
 (defn player [m num step r sound]
   (let [n (first r)]
@@ -86,26 +86,26 @@
 (comment
   (let [scale-name :major
         length 16
-        note-dur (/ 60 (metro-bpm metro) 0.65)]
+        note-dur (- (/ 60 (metro-bpm metro) 4) 0.5)]
     (play metro (+ (bars 0) (metro))
           :c5 scale-name
           1 (bars (+ length 0))
-          #(sine-add :freq % :release note-dur))
+          #(sine-add :freq % :sustain note-dur))
 
     (play metro (+ (bars 1) (metro))
           :c3 scale-name
           1/4 (bars (- length 1))
-          #(sine-add :freq % :release (* 4 note-dur)))
+          #(sine-add :freq % :sustain (* 4 note-dur) :amp 0.8))
 
     (play metro (+ (bars 2) 0.5 (metro))
           :c5 scale-name
           1 (bars (- length 2 1))
-          #(sine-add :freq % :release note-dur))
+          #(sine-add :freq % :sustain note-dur))
 
     (play metro (+ (bars 4) (metro))
           :c4 scale-name
           2 (bars (- length 4 2))
-          #(sine-add :freq % :release note-dur))
+          #(sine-add :freq % :sustain note-dur))
 
     (doall
      (for [b (range 3 (- length 2) 2)]
@@ -113,11 +113,11 @@
          (play metro (+ (bars b) 0.25 (metro))
                :c5 scale-name
                1 (bars 1)
-               #(sine-add :freq % :release note-dur))
+               #(sine-add :freq % :sustain note-dur))
          (play metro (+ (bars b) 0.75 (metro))
                :c5 scale-name
                1 (bars 1)
-               #(sine-add :freq % :release note-dur)))))
+               #(sine-add :freq % :sustain note-dur)))))
     "generated music")
 
   (stop)
