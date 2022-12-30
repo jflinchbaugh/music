@@ -489,17 +489,18 @@
   (let [snd (play-buf 1 sample :action FREE)]
     (out [0 1] (* amp snd))))
 
-(defn drum-player [sample-name-grid]
+(defn drum-player [quantize sample-name-grid]
   (let [notes* (atom {:active {} :finished {}})
         on-id (keyword (gensym "on-handler"))
         off-id (keyword (gensym "off-handler"))
         cc-id (keyword (gensym "cc-handler"))
+        metro (metronome 174)
         control-change (fn [data-1 data-2])
         sample-name-grid-v (mapv vec sample-name-grid)
         sample-grid (load-sample-grid sample-name-grid)
         play-note (fn [n]
                     (let [sample (get-in sample-grid (concat (note->coord n) [0]))]
-                      (when-not (nil? sample) (my-sample-player sample))))]
+                      (when sample (at (metro (+ quantize (metro))) (my-sample-player sample)))))]
     (doseq [r (range 8)
             c (range 8)]
       (light-on [r c] (get-in sample-grid [r c 1] :black)))
@@ -574,15 +575,25 @@
 
   (start-event-handler log-player)
 
-  (start-event-handler drum-player)
-
   (stop-active-event-handlers)
 
   (load-sample-grid (take 1 sampler-grid))
 
+  ;; subset
   (start-event-handler
     drum-player
-    (take 8 (partition 8 (filter #(re-matches #".*(808|acoustic|vinyl|tape|perc).*" %) all-samples))))
+    0
+    (take 8
+      (partition 8
+        (filter
+          #(re-matches #".*(808|analog|acoustic|vinyl|tape|perc).*" %)
+          all-samples))))
+
+  ;; all
+  (start-event-handler
+    drum-player 0
+    (take 8
+      (partition 8 all-samples)))
 
   (stop-active-event-handlers)
 
