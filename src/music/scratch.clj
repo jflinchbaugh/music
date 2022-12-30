@@ -142,21 +142,6 @@
           (* env (saw 220))))
 
   (demo (let [dur 1
-              env (abs (sin-osc:kr (/ 10 dur)))]
-          (line:kr 0 1 dur :action FREE)
-          (* env (saw 220))))
-
-  (demo (let [dur 1
-              env (abs (sin-osc:kr :freq (/ 1 dur) :mul 0.5 :add 1))]
-          (line:kr 0 1 dur :action FREE)
-          (* env (saw 220))))
-
-  (demo (let [dur 1
-              env (abs (lf-saw :freq (/ 1 dur) :mul 0.5 :add 1))]
-          (line:kr 0 1 dur :action FREE)
-          (* env (saw 220))))
-
-  (demo (let [dur 1
               env (lf-saw :freq (/ 1 dur) :iphase -2 :mul 0.5 :add 1)]
           (line:kr 0 1 dur :action FREE)
           (* 0.1 env (saw 220))))
@@ -189,7 +174,7 @@
   (definst trem [freq 440 depth 10 rate 6 length 3]
     (* 0.3
        (line:kr 0 1 length FREE)
-       (saw (+ freq (* depth (sin-osc:kr rate))))))
+       (sin-osc (+ freq (* depth (sin-osc:kr rate))))))
 
   (trem)
 
@@ -228,7 +213,7 @@
 
   (now)
 
-  (doseq []
+  (do
     (at (+ (now) 0) (sp/sampled-piano 60))
     (at (+ (now) 0) (d/noise-snare (midi->hz 60) 1 0.5))
     (at (+ (now) 250) (sp/sampled-piano 52))
@@ -300,13 +285,13 @@
                                         ; setup a tempo for our metronome to use
   (def one-twenty-bpm (metronome 120))
 
-                                        ; this function will play our sound at whatever tempo we've set our metronome to 
-  (defn looper [nome sound]    
+  ; this function will play our sound at whatever tempo we've set our metronome to
+  (defn looper [nome sound]
     (let [beat (nome)]
       (at (nome beat) (sound))
       (apply-by (nome (inc beat)) looper nome sound [])))
 
-                                        ; turn on the metronome
+  ; turn on the metronome
   (looper one-twenty-bpm kick)
   (stop)
 
