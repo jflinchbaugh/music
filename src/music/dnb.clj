@@ -7,14 +7,14 @@
 
 (def metro (metronome 174))
 
+(def pat (atom []))
+
 (defn beat [m beat-num pat-length pat]
   (doseq [[b i & p] @pat]
     (at (m (+ b beat-num)) (apply i p)))
   (apply-by
     (m (+ pat-length beat-num))
     beat m (+ pat-length beat-num) pat-length pat []))
-
-(def pat (atom []))
 
 (def ring-hat (freesound 12912))
 (def snare (freesound 26903))
@@ -37,10 +37,10 @@
                  ]
 
                 ;;hats
-                (map (fn [i] [i d/closed-hat2]) (range 0 4 0.5))
+                #_(map (fn [i] [i d/closed-hat2]) (range 0 4 0.5))
 
                 ;; shuffle
-                #_[[1.125 d/closed-hat2]
+                [[1.125 d/closed-hat2]
                    [1.25 d/closed-hat2]
                    ]))
 
