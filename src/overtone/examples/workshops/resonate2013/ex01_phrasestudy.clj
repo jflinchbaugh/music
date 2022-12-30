@@ -3,7 +3,7 @@
     :author "Karsten Schmidt"}
   overtone.examples.workshops.resonate2013.ex01_phrasestudy
   (:use
-   [overtone.live]
+   [overtone.core]
    [overtone.inst.piano]
    [overtone.inst.sampled-piano]))
 
@@ -33,8 +33,9 @@
   ;; notes will be played every 200 milliseconds
   ;; the fn passed to `map-indexed` takes two arguments: index & note
   (dorun (map-indexed
-           (fn [i n] (at (+ (now) (* i 200)) (sampled-piano n)))
+           (fn [i n] (at (+ (now) (* i 50)) (sampled-piano n)))
            [60 62 67 72]))
+
   ;; same, but using fn reader macro w/ anonymous arguments (% = 1st argument, %2 = 2nd arg, etc.)
   (dorun (map-indexed #(at (+ (now) (* % 200)) (sampled-piano %2)) [60 62 67 72]))
   ;; play progression relative to C4 (MIDI note offset = 60)
@@ -133,7 +134,9 @@
 
 
   ;; specify note durations (1/16th), root note (:c4) and number of repetitions (2)
-  (play-phrases-1 metro sampled-piano 1/16 :c4 2 a a b b))
+  (play-phrases-1 metro sampled-piano 1/8 :c4 2 a a b b)
+
+  )
 
 ;; continue separating concerns: pattern repetition vs. pattern playback...
 

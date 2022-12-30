@@ -71,7 +71,9 @@
   ;; degrees it will always be "in tune", regardless of scale changes
   (play-tune piano 120 :f4 :minor melody)
   (play-tune piano 120 :c4 :major (repeat-notes 2 melody))
+  (play-tune piano 120 :c4 :major (repeat-notes 3 melody))
   (play-tune piano 120 :c4 :major (arpeggiate 2 melody))
+  (play-tune piano 120 :c4 :major (arpeggiate 4 melody))
   (play-tune piano  60 :c4 :egyptian (arpeggiate 3 melody)) ; my favourite!
   (play-tune piano  60 :c4 :diminished (arpeggiate 4 (reverse melody)))
   )
