@@ -6,9 +6,9 @@ My music explorations in Clojure and Overtone.
 
 * Ensure `pipewire` is running to serve as our JACK server
 * `lein install` latest overtone source (0.10.6).
-* Start supernova synth engine: ./supernova.sh
+* Start supernova and an nrepl: ./supernova.sh
 * In Emacs:
 ** Start emacs
-** jack in normally
+** connect to the running repl
 ** evaluate all of `music/core.clj`
 ** you should be connected and ready to go!
