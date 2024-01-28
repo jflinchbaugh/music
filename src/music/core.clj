@@ -2,6 +2,7 @@
   (:require [overtone.core :refer :all]
             [clojure.java.shell :refer [sh]]))
 
+
 (defonce external-server
   (do
     (println "Connecting to supercollider")
@@ -31,3 +32,10 @@
     (stop-event-handlers p)
     (prn p)
     (swap! active-event-handlers* (fn [coll item] (remove #{item} coll)) p)))
+
+
+(comment
+
+  (demo (sin-osc))
+
+  )
