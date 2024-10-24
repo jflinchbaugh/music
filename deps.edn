@@ -1,5 +1,5 @@
-{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
-        overtone/overtone {:mvn/version "0.13.3177"}
+{:deps {org.clojure/clojure {:mvn/version "1.12.0"}
+        overtone/overtone {:mvn/version "0.15.3295"}
         leipzig/leipzig {:mvn/version "0.10.0"}
         badigeon/badigeon {:mvn/version "1.7"}
         }
