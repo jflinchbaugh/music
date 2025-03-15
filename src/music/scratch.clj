@@ -4,7 +4,6 @@
             [overtone.inst.drum :as d]
             [overtone.inst.sampled-piano :as sp]
             [overtone.inst.sampled-flute :as f]
-            [overtone.inst.synth :as synth]
             [overtone.synth.sts :as sts]))
 
 (comment
@@ -314,8 +313,6 @@
 
   (def pitches (degrees->pitches scale-degrees :dorian :C4))
 
-  (iterate #(prn %) pitches)
-
   (defn play [time notes sep]
     (let [note (first notes)]
       (when note
@@ -417,8 +414,10 @@
       (doseq [b [0 2 6 10 14 14.5 15 15.5]]
         (at (m (+ b beat-num)) (d/kick)))
 
-      #_(apply-at (m (+ (count notes) beat-num)) (var chord-progression-beat) m (+ (count notes) beat-num) []))
+      (apply-at (m (+ (count notes) beat-num)) (var chord-progression-beat) m (+ (count notes) beat-num) []))
   )
+
+  (stop)
 
   (chord-progression-beat metro (metro))
 
@@ -435,6 +434,11 @@
 
   (map (fn [b n] (-> [b n])) (range 16) [:i :ii :iii])
 
+  (demo 2 (pan2 (* 0.2 (+ (sin-osc 440) (sin-osc 880)))))
+
+  (definst thing [freq 440] (pan2 (* 0.2 (+ (sin-osc 440) (sin-osc 880)))))
+
+  (thing)
 
   nil)
 
