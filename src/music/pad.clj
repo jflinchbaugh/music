@@ -69,7 +69,12 @@
 (comment
   (light-grid (fn [r c] (nth (cycle (rest (keys colors))) (+ (* 2 c) (* 2 r)))))
 
+  (light-grid (fn [r c] (nth (cycle (rest (keys colors))) (+ (* 1 c) (* 1 r)))))
+
   (light-grid random-lights)
+
+  (apply-by (+ 1000 (now)) light-grid random-lights)
+
 
   (light-on [0 2] :white)
 
