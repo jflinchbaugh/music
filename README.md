@@ -6,6 +6,7 @@ My music explorations in Clojure and Overtone.
 
 * Ensure `pipewire` is running to serve as our JACK server
 * Start supernova and an nrepl: ./supernova.sh
+* Ensure that supernova is wired in pipewire to an output
 * In Emacs:
 ** Start emacs
 ** connect to the running repl
