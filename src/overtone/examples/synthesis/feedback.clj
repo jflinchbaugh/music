@@ -1,5 +1,6 @@
 (ns overtone.examples.synthesis.feedback
-  (:use overtone.core))
+  (:require [music.core :refer :all]
+            [overtone.core :refer :all]))
 
 ;; The local-out and local-in ugens can be used to pipe signal data back
 ;; into the same synth each time processes a buffer of audio.  This is
@@ -29,5 +30,17 @@
         fb-out (local-out snd)]
     (out 0 (pan2 snd))))
 
-;;(distorted-feedback)
-;;(stop)
+(comment 
+  (feedback-loop)
+
+  (distorted-feedback)
+
+  (stop)
+
+
+  (definst crackle-inst [] (pan2 (crackle 0.5)))
+
+
+  (crackle-inst )
+
+  )
