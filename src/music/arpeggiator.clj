@@ -1,5 +1,6 @@
 (ns music.arpeggiator
-  (:require [overtone.core :refer :all]))
+  (:require [music.core :refer :all]
+            [overtone.core :refer :all]))
 
 (def metro (metronome 120))
 
@@ -86,7 +87,7 @@
 (comment
   (let [scale-name :major
         length 16
-        note-dur (- (/ 60 (metro-bpm metro) 4) 0.5)]
+        note-dur (/ 60 (metro-bpm metro) 8)]
     (play metro (+ (bars 0) (metro))
           :c5 scale-name
           1 (bars (+ length 0))
