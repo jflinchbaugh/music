@@ -595,8 +595,11 @@
     (take 8
       (partition 8 all-samples)))
 
+  (start-event-handler inst-player sustain-saw )
+
   (stop-active-event-handlers)
 
+  (demo (sin-osc))
 
   .)
 
