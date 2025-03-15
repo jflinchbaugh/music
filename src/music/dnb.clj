@@ -7,6 +7,8 @@
 
 (def metro (metronome 174))
 
+
+
 (def pat (atom []))
 
 (defn beat [m beat-num pat-length pat]
@@ -22,7 +24,7 @@
 (def wop (freesound 85291))
 (def subby #((freesound 25649) 1 0 1 0 0.5))
 
-(def kick (partial d/kick 50 0.5 1 0.25))
+(def kick (partial d/kick 75 1.0 1 0.25))
 
 (comment
   (reset! pat [])
@@ -30,14 +32,16 @@
   (reset! pat (concat
                 ;; drums
                 [
-                 [0 kick] ;; (midi->hz (note :c2)) 1]
+                 [0 (partial d/kick (+ 25 (rand-int 100)))]
                  [1 d/snare]
-                 [2.5 kick] ;; (midi->hz (note :c2)) 10]
+                 [2.5 (partial d/kick (+ 25 (rand-int 100)))]
                  [3 d/snare]
                  ]
 
                 ;;hats
-                #_(map (fn [i] [i d/closed-hat2]) (range 0 4 0.5))
+                (map (fn [i] [i d/closed-hat2]) (range 0 4 0.5))
+
+                [#_[0 d/snare]]
 
                 ;; shuffle
                 [[1.125 d/closed-hat2]
@@ -48,4 +52,19 @@
 
   (stop)
 
-  nil)
+  (d/kick)
+  (d/snare)
+  
+  (d/quick-kick )
+
+  (snare)
+
+  (demo 4 (+ (sin-osc 440)))
+
+  (demo 4 (+ (sin-osc 440) (sin-osc 520)))
+
+  (demo 4 (sin-osc 880) (sin-osc 881))
+
+  (d/dance-kick )
+
+  ,)
